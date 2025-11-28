@@ -22,7 +22,6 @@ export default function InputFields({ pageType, setPageType }){
     const resetToken = searchParams.get("token");
     // const { resetToken } = useParams();
     const { user, login, logout, createAccount, sendResetPassEmail, setPassword } = useAuth();
-    console.log(createAccount);
     const username = user?.username;
     const utorid = user?.utorid;
     const handleSetPassword = (e) => {

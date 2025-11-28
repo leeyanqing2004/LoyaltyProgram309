@@ -177,7 +177,7 @@ export const AuthProvider = ({ children }) => {
                 return data.error || "Reset password failed."
             }
 
-            navigate("/login", { state: { pageType: "passwordChanged" } });
+            // navigate("/login", { state: { pageType: "passwordChanged" } });
             return null;
 
         } catch (err) {
