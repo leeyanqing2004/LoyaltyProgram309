@@ -1,7 +1,7 @@
-import Nav from "../components/Nav";
-import LeftNav from "../components/LeftNav";
-import ProfileSection from "../components/ProfileSection";
-import AccountSection from "../components/AccountSection";
+import Nav from "../components/Profile/Nav";
+import LeftNav from "../components/Profile/LeftNav";
+import ProfileSection from "../components/Profile/ProfileSection";
+import AccountSection from "../components/Profile/AccountSection";
 import "./Profile.css";
 
 function RightSide() {

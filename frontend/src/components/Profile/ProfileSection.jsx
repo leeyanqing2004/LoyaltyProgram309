@@ -1,11 +1,11 @@
 import { useState } from "react";
 import "./ProfileSection.css";
 
-function ProfileField({ type, label }) {
+function ProfileField({ type, label, field, setField }) {
     return  <div className="profile-section-profile-field">
-                <label className="profile-section-profile-field-label" htmlFor={label}>{label}</label>
-                <input className="profile-section-profile-field-input" type={type} id={label} name={label} />
-            </div>;
+        <label className="profile-section-profile-field-label" htmlFor={label}>{label}</label>
+        <input className="profile-section-profile-field-input" type={type} id={label} name={label} value={field} onChange={(e) => setField(e.target.value)} />
+    </div>;
 }
 
 function getEditingFields(locked, setLocked) {
@@ -21,7 +21,15 @@ function getEditingFields(locked, setLocked) {
     return <div className="profile-section-editing-fields">{content}</div>;
 }
 
+function handlePasswordChange(password) {
+    // Placeholder function for changing password
+}
+
 function ProfileSection({ id }) {
+    const [name, setName] = useState("");
+    const [birthday, setBirthday] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [locked, setLocked] = useState(true);
     const lockedStyle = { pointerEvents: 'none', opacity: 0.5 };
     const unlockedStyle = { pointerEvents: 'auto', opacity: 1 };
@@ -35,14 +43,16 @@ function ProfileSection({ id }) {
                     <button className="profile-section-remove-image-button">Remove Image</button>
                 </div>
                 <div className="profile-section-public-settings">
-                    <ProfileField type="text" label="Name" />
-                    <ProfileField type="date" label="Birthday" />
+                    <ProfileField type="text" label="Name" field={name} setField={setName} />
+                    <ProfileField type="date" label="Birthday" field={birthday} setField={setBirthday} />
                 </div>
                 <h2 className="profile-section-account-security">Account Security</h2>
                 <div className="profile-section-private-settings">
-                    <ProfileField type="email" label="Email" />
-                    <ProfileField type="password" label="Password" />
-                    <button className="profile-section-change-password-button">Change Password</button>
+                    <ProfileField type="email" label="Email" field={email} setField={setEmail} />
+                    <ProfileField type="password" label="Password" field={password} setField={setPassword} />
+                    <div className="profile-section-password">
+                        <button className="profile-section-change-password-button" onClick={() => handlePasswordChange(password)}>Change Password</button>
+                    </div>
                 </div>
             </div>
             {getEditingFields(locked, setLocked)}

@@ -1,3 +1,4 @@
+import { useAuth } from "../../contexts/AuthContext.jsx";
 import PageButton from "./PageButton.jsx";
 import './LeftNav.css';
 
@@ -10,12 +11,16 @@ function Menu() {
 }
 
 function LeftTop() {
+    const { user, login, logout, createAccount, sendResetPassEmail, setPassword } = useAuth();
+    const name = user?.name;
+    const utorid = user?.utorid;
+    const role = user?.role;
     const profilePicture = <img src="/profile.png" alt="Profile Picture" />;
     const userInfo = <div className="left-nav-user-info">
-        <h1 className="left-nav-username">John Doe</h1>
+        <h1 className="left-nav-username">{name}</h1>
         <div className="left-nav-user-details">
-            <p className="left-nav-UTORid">1234567890</p>
-            <p className="left-nav-user-role">Regular User</p>
+            <p className="left-nav-UTORid">{utorid}</p>
+            <p className="left-nav-user-role">{role}</p>
         </div>
     </div>;
 
