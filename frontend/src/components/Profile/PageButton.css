@@ -13,5 +13,5 @@
 .page-button-active {
     background-color: #2A73B7;
     color: white;
-    border-radius: 6px;
+    border-radius: 0.5em;
 }

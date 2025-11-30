@@ -22,7 +22,6 @@ function AccountSection({ id }) {
                         {AccountInfo({label: "UTORid", value: utorid})}
                         {AccountInfo({label: "Role", value: role})}
                         {AccountInfo({label: "Member Since", value: memberSince})}
-                        {/* {AccountInfo({label: "Status", value: status})} */}
                     </div>
                 </div>
             </div>;

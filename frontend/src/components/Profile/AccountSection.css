@@ -32,3 +32,7 @@
 .account-section-account-info-label {
     color: gray;
 }
+
+.account-section-account-info-value {
+    color: black;
+}

@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { matchPath, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import PageButton from "./PageButton.jsx";
 import './LeftNav.css';
@@ -12,7 +12,7 @@ function Menu() {
 }
 
 function LeftTop() {
-    const { user, login, logout, createAccount, sendResetPassEmail, setPassword } = useAuth();
+    const { user, _ } = useAuth();
     const name = user?.name;
     const utorid = user?.utorid;
     const role = user?.role;
@@ -31,31 +31,31 @@ function LeftTop() {
     </div>;
 }
 
-function LeftMiddle({ curr }) {
-    const isHomeActive = curr.includes("/profile") && curr.includes("/home");
-    console.log("isHomeActive: ", isHomeActive);
+function LeftMiddle({ endpoint }) {
+    const { user, _ } = useAuth();
+    const isHomeActive = matchPath({ path: "/profile/:utorid/home" }, endpoint);
     const homeTab = <div className="left-nav-home-tab">
-        <PageButton text="Home" active={isHomeActive} />
+        <PageButton text="Home" active={isHomeActive} path={`/profile/${user.utorid}/home`}/>
     </div>;
 
-    const isMyAccountActive = curr.includes("/profile/") && curr.includes("/account");
+    const isMyAccountActive = matchPath({ path: "/profile/:utorid/account" }, endpoint);
     const myAccountTab = <div className="left-nav-my-account-tab">
-        <PageButton text="My Account" active={isMyAccountActive} />
+        <PageButton text="My Account" active={isMyAccountActive} path={`/profile/${user.utorid}/account`}/>
     </div>;
 
-    const isTransferPointsActive = curr.includes("/profile/") && curr.includes("/transfer-points");
+    const isTransferPointsActive = matchPath({ path: "/profile/:utorid/transfer-points" }, endpoint);
     const transferPointsTab = <div className="left-nav-transfer-points-tab">
-        <PageButton text="Transfer Points" active={isTransferPointsActive} />
+        <PageButton text="Transfer Points" active={isTransferPointsActive} path={`/profile/${user.utorid}/transfer-points`}/>
     </div>;
 
-    const isRedeemPointsActive = curr.includes("/profile/") && curr.includes("/redeem-points");
+    const isRedeemPointsActive = matchPath({ path: "/profile/:utorid/redeem-points" }, endpoint);
     const redeemPointsTab = <div className="left-nav-redeem-points-tab">
-        <PageButton text="Redeem Points" active={isRedeemPointsActive} />
+        <PageButton text="Redeem Points" active={isRedeemPointsActive} path={`/profile/${user.utorid}/redeem-points`}/>
     </div>;
 
-    const isPastTransactionsActive = curr.includes("/profile/") && curr.includes("/past-transactions");
+    const isPastTransactionsActive = matchPath({ path: "/profile/:utorid/past-transactions" }, endpoint);
     const pastTransactionsTab = <div className="left-nav-past-transactions-tab">
-        <PageButton text="Past Transactions" active={isPastTransactionsActive} />
+        <PageButton text="Past Transactions" active={isPastTransactionsActive} path={`/profile/${user.utorid}/past-transactions`}/>
     </div>;
 
     return <div className="left-nav-left-middle">
@@ -77,12 +77,12 @@ function LeftBottom() {
 
 function LeftNav({ id }) {
     const location = useLocation();
-    const curr = location.pathname.toLowerCase();
+    const endpoint = location.pathname.toLowerCase();
     return <div id={id} className="left-nav">
-        {Menu()}
-        {LeftTop()}
-        {LeftMiddle(curr)}
-        {LeftBottom()}
+        <Menu />
+        <LeftTop />
+        <LeftMiddle endpoint={endpoint} />
+        <LeftBottom />
     </div>;
 }
 

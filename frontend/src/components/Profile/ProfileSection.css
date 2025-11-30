@@ -14,7 +14,7 @@
     padding: 1em;
 
     /* Decorations */
-    color: #e5e5ea;
+    color: black;
     background-color: #fafafa;
     border-color: #e5e5ea;
     border-radius: 0.5em;
@@ -51,6 +51,8 @@
 }
 
 .profile-section-save-changes-button {
+    white-space: nowrap;
+
     /* Spacing */
     padding: 1em;
 
@@ -134,16 +136,16 @@
     padding: 1em;
 
     /* Decorations */
-    /* color: #e5e5ea;
+    color: #e5e5ea;
     background-color: #fafafa;
     border-color: #e5e5ea;
     border-radius: 0.5em;
-    opacity: 1; */
-    border: none;
+    opacity: 1;
+    /* border: none;
     border-radius: 0.5em;
     opacity: 1;
     color: white;
-    background-color: #2A73B7;
+    background-color: #2A73B7; */
 }
 
 .profile-section-edit-button {

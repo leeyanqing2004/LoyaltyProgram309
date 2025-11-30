@@ -41,6 +41,9 @@
     /* Layout */
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    flex: 1;
 }
 
 .left-nav-logout-button {

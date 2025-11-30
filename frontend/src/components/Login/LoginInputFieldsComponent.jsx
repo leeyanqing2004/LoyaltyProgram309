@@ -26,7 +26,6 @@ export default function InputFields({ pageType, setPageType }){
     const utorid = user?.utorid;
     const handleSetPassword = (e) => {
         e.preventDefault();
-        console.log(`setting password with utorid ${utorid} and pass ${inputPassword}`)
         setPassword(utorid, inputPassword, resetToken)
         .then(message => setError(message));
     };
