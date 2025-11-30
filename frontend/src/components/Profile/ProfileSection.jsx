@@ -4,7 +4,13 @@ import "./ProfileSection.css";
 function ProfileField({ type, label, field, setField }) {
     return  <div className="profile-section-profile-field">
         <label className="profile-section-profile-field-label" htmlFor={label}>{label}</label>
-        <input className="profile-section-profile-field-input" type={type} id={label} name={label} value={field} onChange={(e) => setField(e.target.value)} />
+        <input className="profile-section-profile-field-input" 
+               type={type} 
+               id={label} 
+               name={label} 
+               value={field} 
+               onChange={(e) => setField(e.target.value)} 
+        />
     </div>;
 }
 

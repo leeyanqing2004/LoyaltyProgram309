@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import PageButton from "./PageButton.jsx";
 import './LeftNav.css';
@@ -30,25 +31,31 @@ function LeftTop() {
     </div>;
 }
 
-function LeftMiddle() {
+function LeftMiddle({ curr }) {
+    const isHomeActive = curr.includes("/profile") && curr.includes("/home");
+    console.log("isHomeActive: ", isHomeActive);
     const homeTab = <div className="left-nav-home-tab">
-        {PageButton({text: "Home"})}
+        <PageButton text="Home" active={isHomeActive} />
     </div>;
 
+    const isMyAccountActive = curr.includes("/profile/") && curr.includes("/account");
     const myAccountTab = <div className="left-nav-my-account-tab">
-        {PageButton({text: "My Account"})}
+        <PageButton text="My Account" active={isMyAccountActive} />
     </div>;
 
+    const isTransferPointsActive = curr.includes("/profile/") && curr.includes("/transfer-points");
     const transferPointsTab = <div className="left-nav-transfer-points-tab">
-        {PageButton({text: "Transfer Points"})}
+        <PageButton text="Transfer Points" active={isTransferPointsActive} />
     </div>;
 
+    const isRedeemPointsActive = curr.includes("/profile/") && curr.includes("/redeem-points");
     const redeemPointsTab = <div className="left-nav-redeem-points-tab">
-        {PageButton({text: "Redeem Points"})}
+        <PageButton text="Redeem Points" active={isRedeemPointsActive} />
     </div>;
 
+    const isPastTransactionsActive = curr.includes("/profile/") && curr.includes("/past-transactions");
     const pastTransactionsTab = <div className="left-nav-past-transactions-tab">
-        {PageButton({text: "Past Transactions"})}
+        <PageButton text="Past Transactions" active={isPastTransactionsActive} />
     </div>;
 
     return <div className="left-nav-left-middle">
@@ -69,10 +76,12 @@ function LeftBottom() {
 }
 
 function LeftNav({ id }) {
+    const location = useLocation();
+    const curr = location.pathname.toLowerCase();
     return <div id={id} className="left-nav">
         {Menu()}
         {LeftTop()}
-        {LeftMiddle()}
+        {LeftMiddle(curr)}
         {LeftBottom()}
     </div>;
 }

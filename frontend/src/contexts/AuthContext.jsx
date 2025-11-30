@@ -127,7 +127,7 @@ export const AuthProvider = ({ children }) => {
             const userRes = await api.get("/users/me");
             setUser(userRes.data);
 
-            navigate(`/profile/${user.utorid}}`); // TODO: hypothetical "/home" page right now
+            navigate(`/profile/${user.utorid}}/home`); // TODO: hypothetical "/home" page right now
             return null;
         } catch (err) {
             return "Network error"

@@ -16,7 +16,11 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/set-password" element={<SetPassword />} />
-          <Route path="/profile/:utorid" element={<Profile />} />
+          <Route path="/profile/:utorid/home" element={<Profile />} />
+          <Route path="/profile/:utorid/account" element={<Profile />} />
+          <Route path="/profile/:utorid/transfer-points" element={<Profile />} />
+          <Route path="/profile/:utorid/redeem-points" element={<Profile />} />
+          <Route path="/profile/:utorid/past-transactions" element={<Profile />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
