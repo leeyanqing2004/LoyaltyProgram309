@@ -12,7 +12,7 @@ function Menu() {
 }
 
 function LeftTop() {
-    const { user, _ } = useAuth();
+    const { user } = useAuth();
     const name = user?.name;
     const utorid = user?.utorid;
     const role = user?.role;
@@ -32,7 +32,11 @@ function LeftTop() {
 }
 
 function LeftMiddle({ endpoint }) {
-    const { user, _ } = useAuth();
+    const { user } = useAuth();
+    if (!user) {
+        return null;
+    }
+    
     const isHomeActive = matchPath({ path: "/profile/:utorid/home" }, endpoint);
     const homeTab = <div className="left-nav-home-tab">
         <PageButton text="Home" active={isHomeActive} path={`/profile/${user.utorid}/home`}/>
@@ -68,8 +72,9 @@ function LeftMiddle({ endpoint }) {
 }
 
 function LeftBottom() {
+    const { logout } = useAuth();
     return <div className="left-nav-left-bottom">
-        <button className="left-nav-logout-button">
+        <button className="left-nav-logout-button" onClick={logout}>
             Logout
         </button>
     </div>;

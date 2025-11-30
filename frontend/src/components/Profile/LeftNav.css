@@ -44,6 +44,9 @@
     justify-content: flex-end;
     align-items: flex-end;
     flex: 1;
+
+    /* Spacing */
+    padding: 20px;
 }
 
 .left-nav-logout-button {
@@ -54,6 +57,9 @@
 }
 
 .left-nav {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     /* Decorations */
     background-color: white;
 }

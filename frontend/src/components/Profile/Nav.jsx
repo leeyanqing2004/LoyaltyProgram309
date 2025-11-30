@@ -2,7 +2,7 @@ import { useAuth } from "../../contexts/AuthContext.jsx";
 import "./Nav.css";
 
 function Nav({ id }) {
-    const { user, _ } = useAuth();
+    const { user } = useAuth();
     return (<nav id={id} className="nav">
                 <ul className="nav-list">
                     <li className="nav-list-item">

@@ -21,6 +21,14 @@
     opacity: 1;
 }
 
+.profile-section-error {
+    /* Spacing */
+    margin: 0.25em;
+
+    /* Decorations */
+    color: #2A73B7;
+}
+
 .profile-section-edit-button {
     /* Spacing */
     padding: 1em;
@@ -83,6 +91,33 @@
     padding: 30px;
 }
 
+.profile-section-settings-locked {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.profile-section-settings-unlocked {
+    pointer-events: auto;
+    opacity: 1
+}
+
+.profile-section-new-image-button-unlocked {
+    /* Decorations */
+    border: none !important;
+    border-radius: 0.5em !important;
+    color: white !important;
+    background-color: #2A73B7 !important;
+}
+
+.profile-section-remove-image-button-unlocked {
+    /* Decorations */
+    border-radius: 0.5em !important;
+    opacity: 1 !important;
+    color: #2A73B7 !important;
+    background-color: white !important;
+    border-color: #fafafa !important;
+}
+
 .profile-section-image-settings {
     /* Layout */
     display: flex;
@@ -126,7 +161,7 @@
     justify-content: flex-end;
 
     /* Spacing */
-    margin-bottom: 10px;
+    margin-bottom: 30px;
 }
 
 .profile-section-change-password-button {
@@ -148,6 +183,18 @@
     background-color: #2A73B7; */
 }
 
+.profile-section-change-password-button-unlocked {
+    /* Decorations */
+    border: none !important;
+    border-radius: 0.5em !important;
+    color: white !important;
+    background-color: #2A73B7 !important;
+}
+
 .profile-section-edit-button {
     width: auto;
+}
+
+button:hover {
+    cursor: pointer;
 }
