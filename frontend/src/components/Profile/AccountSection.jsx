@@ -15,12 +15,16 @@ function AccountSection({ id }) {
     const createdAt = user?.createdAt;
     const memberSince = new Date(createdAt).toDateString();
 
+    function Capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
     return  <div id={id} className="account-section">
                 <div className="account-section-details">
                     <div className="account-section-settings">
                         <h2 className="account-section-title">Account Details</h2>
                         {AccountInfo({label: "UTORid", value: utorid})}
-                        {AccountInfo({label: "Role", value: role})}
+                        {AccountInfo({label: "Role", value: Capitalize(role)})}
                         {AccountInfo({label: "Member Since", value: memberSince})}
                     </div>
                 </div>
