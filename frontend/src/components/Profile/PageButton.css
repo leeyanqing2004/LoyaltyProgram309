@@ -1,0 +1,17 @@
+.page-button {
+    /* Spacing */
+    padding: 1em;
+
+    /* Text */
+    font-weight: bold;
+
+    /* Decoration */
+    border: none;
+    background: none;
+}
+
+.page-button-active {
+    background-color: #2A73B7;
+    color: white;
+    border-radius: 0.5em;
+}
