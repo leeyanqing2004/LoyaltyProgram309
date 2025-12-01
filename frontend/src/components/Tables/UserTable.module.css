@@ -1,0 +1,31 @@
+.userTableContainer {
+    display: flex;
+    flex-direction: column;
+    background-color: #ffff;
+    padding: 30px;
+    gap: 20px;
+    border-radius: 10px;
+}
+
+.userTableTitle {
+    font-size: 20px;
+    color: #000000;
+    align-self: flex-start;
+}
+
+:global(.MuiTableCell-head) {
+    color: #2A73B7;
+    font-weight: bold;
+    text-align: center !important;
+}
+
+.moreDetailsBtn {
+    color: #2A73B7;
+    background: #f7f7f7;
+    border: none;
+    cursor: pointer;
+  }
+
+:global(.MuiTableCell-body) {
+    text-align: center !important;
+}
