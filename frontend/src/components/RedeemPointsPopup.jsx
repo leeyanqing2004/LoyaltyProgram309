@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../api/api";
-import "./RedeemPointsPopup.css";
+import "./RedeemPointsPopup.module.css";
 
 function RedeemPointsPopup() {
     const { user } = useAuth();

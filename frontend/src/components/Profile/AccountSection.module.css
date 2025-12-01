@@ -20,6 +20,11 @@
     gap: 20px;
 }
 
+.account-section-title {
+    /* Spacing */
+    margin: 0;
+}
+
 .account-section-account-info {
     /* Layout */
     display: flex;

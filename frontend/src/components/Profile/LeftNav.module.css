@@ -63,3 +63,55 @@
     /* Decorations */
     background-color: white;
 }
+
+.left-nav-user-info {
+    /* Layout */
+    display: flex;
+    flex-direction: column;
+}
+
+.left-nav-username {
+    /* Spacing */
+    margin: 0;
+}
+
+.left-nav-user-details {
+    /* Layout */
+    display: flex;
+    flex-direction: column;
+}
+
+.left-nav-UTORid {
+    /* Spacing */
+    margin: 0;
+}
+
+.left-nav-user-role {
+    /* Spacing */
+    margin: 0;
+}
+
+.left-nav-home-tab {
+    /* Layout */
+    display: flex;
+}
+
+.left-nav-my-account-tab {
+    /* Layout */
+    display: flex;
+}
+
+.left-nav-transfer-points-tab {
+    /* Layout */
+    display: flex;
+}
+
+.left-nav-redeem-points-tab {
+    /* Layout */
+    display: flex;
+}
+
+.left-nav-past-transactions-tab {
+    /* Layout */
+    display: flex;
+}

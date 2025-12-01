@@ -1,8 +1,8 @@
-body {
+:global(body) {
     margin: 0;
 }
 
-#profile-grid-container {
+.profileGridContainer {
     /* Layout */
     display: grid;
     grid-template-columns: auto 1fr;
@@ -19,29 +19,32 @@ body {
     background-color: #f7f7f7;
 }
 
-#profile-nav {
+.profileNav {
     /* Layout */
     grid-area: nav;
 }
 
-#profile-left-nav {
+.profileLeftNav {
     /* Layout */
     grid-area: left-nav;
 }
 
-#profile-right-side {
+.profileRightSide {
     /* Layout */
+    grid-area: account-info;
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-areas: "profile-section account-section";
+    min-height: 0;
+    overflow-y: auto;
 }
 
-#profile-profile-section {
+.profileProfileSection {
     /* Layout */
     grid-area: profile-section;
 }
 
-#profile-account-section {
+.profileAccountSection {
     /* Layout */
     grid-area: account-section;
 }

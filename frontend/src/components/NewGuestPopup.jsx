@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "./NewGuestPopup.css";
+import "./NewGuestPopup.module.css";
 
 function NewGuestPopup(eventId) {
     const [utorid, setUtorid] = useState("");
