@@ -2,18 +2,14 @@ import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from './pages/Login';
 import Profile from './pages/Profile';
+
 import ResetPassword from "./pages/ResetPassword";
 import SetPassword from "./pages/SetPassword";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Navigate } from "react-router-dom";
-import ResetPassword from "./pages/ResetPassword";
-import SetPassword from "./pages/SetPassword";
-import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import PastTransactions from "./pages/PastTransactions";
 import AllTransactions from "./pages/AllTransactions";
-import { AuthProvider } from "./contexts/AuthContext";
-import { Navigate } from "react-router-dom";
 import RedeemPoints from './pages/RedeemPoints';
 import PublishedEvents from './pages/PublishedEvents';
 import AllEvents from './pages/AllEvents';
