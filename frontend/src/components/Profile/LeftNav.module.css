@@ -1,23 +1,15 @@
 .leftNavMenu {
-    /* Layout */
     display: flex;
     flex-direction: column;
-
-    /* Spacing */
     padding: 0.25em;
     gap: 0.25em;
-
-    /* Decorations */
     border: none;
     background: none;
 }
 
 .leftNavMenuBar {
-    /* Sizes */
     width: 16px;
     height: 2px;
-
-    /* Decorations */
     background: #7d7d7d;
     border-radius: 3px;
 }
@@ -62,47 +54,4 @@
     flex-direction: column;
     height: 100%;
     background-color: white;
-    position: relative;
-}
-
-.leftNavUserInfo {
-    display: flex;
-    flex-direction: column;
-}
-
-.leftNavUsername {
-    margin: 0;
-}
-
-.leftNavUserDetails {
-    display: flex;
-    flex-direction: column;
-}
-
-.leftNavUTORid {
-    margin: 0;
-}
-
-.leftNavUserRole {
-    margin: 0;
-}
-
-.leftNavHomeTab {
-    display: flex;
-}
-
-.leftNavMyAccountTab {
-    display: flex;
-}
-
-.leftNavTransferPointsTab {
-    display: flex;
-}
-
-.leftNavRedeemPointsTab {
-    display: flex;
-}
-
-.leftNavPastTransactionsTab {
-    display: flex;
 }
