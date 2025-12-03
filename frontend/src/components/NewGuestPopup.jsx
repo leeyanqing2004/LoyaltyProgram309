@@ -40,14 +40,14 @@ function NewGuestPopup(eventId) {
                     className={styles.newGuestPopupUtoridLabel} 
                     htmlFor={styles.newGuestPopupUtoridInput}
                 >
-                    Utorid
+                    UTORid
                 </label>
                 <input 
                     id={styles.newGuestPopupUtoridInput}
                     className={styles.newGuestPopupUtoridInput}
                     type="text"
                     name="new-guest-popup-utorid-input"
-                    placeholder="Enter utorid"
+                    placeholder="Enter UTORid"
                     value={utorid}
                     onChange={(e) => setUtorid(e.target.value)}
                     disabled={submitting}

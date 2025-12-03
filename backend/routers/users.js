@@ -339,6 +339,8 @@ router.get('/me', clearanceRequired('regular'), async (req, res) => {
         return res.status(404).json({ error: "User not found" });
     }
 
+    const computedPoints = await computeUserPointsForUser(user);
+
     // 200 OK
     res.status(200).json({
         id: user.id,
@@ -347,7 +349,7 @@ router.get('/me', clearanceRequired('regular'), async (req, res) => {
         email: user.email,
         birthday: user.birthday,
         role: user.role,
-        points: user.points,
+        points: computedPoints,
         createdAt: user.createdAt,
         lastLogin: user.lastLogin,
         verified: user.verified,
@@ -457,6 +459,7 @@ router.get('/:userId', clearanceRequired('cashier'), async (req, res) => {
     }
 
     const userRole = req.auth.role;
+    const computedPoints = await computeUserPointsForUser(user);
     if (userRole === 'manager' || userRole === 'superuser') {
 
         // Manager or higher response
@@ -469,7 +472,7 @@ router.get('/:userId', clearanceRequired('cashier'), async (req, res) => {
             email: user.email,
             birthday: user.birthday,
             role: user.role,
-            points: user.points,
+            points: computedPoints,
             createdAt: user.createdAt,
             lastLogin: user.lastLogin,
             verified: user.verified,
@@ -482,7 +485,7 @@ router.get('/:userId', clearanceRequired('cashier'), async (req, res) => {
             id: user.id,
             utorid: user.utorid,
             name: user.name,
-            points: user.points,
+            points: computedPoints,
             verified: user.verified,
             promotions: Array.isArray(user.promotions) ? user.promotions : []
         });
@@ -613,6 +616,46 @@ router.all('/:userId', (req, res) => {
     res.status(405).json({ error: "Method Not Allowed" });
 });
 
+async function computeUserPointsForUser(user) {
+    const transactions = await prisma.transaction.findMany({
+        where: { utorid: user.utorid },
+        select: {
+            type: true,
+            amount: true,
+            suspicious: true,
+            processed: true,
+            senderId: true,
+            recipientId: true
+        }
+    });
+
+    let total = 0;
+
+    for (const t of transactions) {
+        if (t.suspicious) continue;
+        if (t.type === "purchase" || t.type === "event") {
+            total += t.amount;
+            continue;
+        }
+        if (t.type === "transfer") {
+            if (t.senderId === user.id) {
+                total -= t.amount;
+            } else if (t.recipientId === user.id) {
+                total += t.amount;
+            }
+            continue;
+        }
+        if (t.type === "redemption") {
+            if (t.processed) {
+                total -= t.amount;
+            }
+            continue;
+        }
+    }
+
+    return total;
+}
+
 // helper function to check the types of values in payload
 function checkTypes(values, types, isRequired) {
     return values.every((value, index) => {
@@ -691,14 +734,33 @@ router.all("/me/transactions", clearanceRequired('regular'), async (req, res) =>
         });
     }
     if (req.method === "GET") {
-        const keys = Object.keys(req.body);
+        // Support filters from either query string (?page=1&limit=10...) or JSON body (legacy)
+        const source = Object.keys(req.query).length ? req.query : req.body;
+        const keys = Object.keys(source);
         const allowedKeys = ['type', 'relatedId', 'promotionId', 'amount', 'operator', 'page', 'limit'];
         const unknownKeys = keys.filter(key => !allowedKeys.includes(key));
         if (unknownKeys.length > 0) {
             return res.status(400).json({ error: `Unknown field(s): ${unknownKeys.join(', ')}` });
         }
 
-        let { type, relatedId, promotionId, amount, operator, page, limit } = req.body;
+        let { type, relatedId, promotionId, amount, operator, page, limit } = source;
+
+        // Coerce primitive types from query-string values where necessary
+        if (typeof relatedId === 'string') {
+            relatedId = relatedId.length ? Number(relatedId) : undefined;
+        }
+        if (typeof promotionId === 'string') {
+            promotionId = promotionId.length ? Number(promotionId) : undefined;
+        }
+        if (typeof amount === 'string') {
+            amount = amount.length ? Number(amount) : undefined;
+        }
+        if (typeof page === 'string') {
+            page = page.length ? Number(page) : undefined;
+        }
+        if (typeof limit === 'string') {
+            limit = limit.length ? Number(limit) : undefined;
+        }
 
         const userId = req.auth.id;
         const user = await prisma.user.findUnique({where: { id: userId }})
@@ -788,6 +850,25 @@ router.all("/me/transactions", clearanceRequired('regular'), async (req, res) =>
     }
 });
 
+// Lightweight lookup by UTORid so clients can resolve a userId before transfer
+router.get("/resolve/:utorid", clearanceRequired('regular'), async (req, res) => {
+    const utorid = req.params.utorid;
+    if (!utorid || typeof utorid !== "string") {
+        return res.status(400).json({ error: "Bad Request" });
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { utorid },
+        select: { id: true, utorid: true, name: true }
+    });
+
+    if (!user) {
+        return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json(user);
+});
+
 router.all("/:userId/transactions", clearanceRequired('regular'), async (req, res) => {
     if (req.method !== "POST") {
         return res.status(405).send({error: "Method Not Allowed"});
@@ -823,11 +904,13 @@ router.all("/:userId/transactions", clearanceRequired('regular'), async (req, re
         return res.status(403).json({ error: "Forbidden: sender not verified." });
     }
 
-    const receiverId = parseInt(req.params.userId)
+    const receiverIdentifier = req.params.userId;
+    const receiver = isNaN(receiverIdentifier)
+        ? await prisma.user.findUnique({ where: { utorid: receiverIdentifier } })
+        : await prisma.user.findUnique({ where: { id: parseInt(receiverIdentifier) } });
 
-    const receiver = await prisma.user.findUnique({where: { id: receiverId }})
     if (!receiver) {
-        return res.status(404).send({ error: "Receiver with userId not found" });
+        return res.status(404).send({ error: "Receiver with id or utorid not found" });
     }
 
     const newTransfer1 = await prisma.transaction.create({

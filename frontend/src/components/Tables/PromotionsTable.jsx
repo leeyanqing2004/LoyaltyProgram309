@@ -76,7 +76,11 @@ export default function PromotionsTable({ promoTableTitle, availableOnlyBool, pr
             <Box display="flex" gap={2} mb={2}>
                 {/* Filter Input */}
                 <TextField
+<<<<<<< HEAD
+                    label="Filter by UTORid"
+=======
                     label="Promotion Name"
+>>>>>>> origin/main
                     variant="outlined"
                     size="small"
                     value={nameFilter}

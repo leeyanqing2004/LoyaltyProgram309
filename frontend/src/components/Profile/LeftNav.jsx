@@ -11,17 +11,30 @@ function Menu() {
     </button>
 }
 
+function Capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+
 function LeftTop() {
     const { user } = useAuth();
     const name = user?.name;
     const utorid = user?.utorid;
     const role = user?.role;
     const profilePicture = <img src="/profile.png" alt="Profile Picture" />;
+<<<<<<< HEAD
+    const userInfo = <div className="left-nav-user-info">
+        <h1 className="left-nav-username">{name}</h1>
+        <div className="left-nav-user-details">
+            <p className="left-nav-UTORid">{utorid}</p>
+            <p className="left-nav-user-role">{Capitalize(role)}</p>
+=======
     const userInfo = <div className={styles.leftNavUserInfo}>
         <h1 className={styles.leftNavUsername}>{name}</h1>
         <div className={styles.leftNavUserDetails}>
             <p className={styles.leftNavUTORid}>{utorid}</p>
             <p className={styles.leftNavUserRole}>{role}</p>
+>>>>>>> origin/main
         </div>
     </div>;
 
@@ -36,10 +49,16 @@ function LeftMiddle({ endpoint }) {
     if (!user) {
         return null;
     }
+<<<<<<< HEAD
+    const isHomeActive = matchPath({ path: "/profile/:utorid/home" }, endpoint) || matchPath({ path: "/home" }, endpoint);
+    const homeTab = <div className="left-nav-home-tab">
+        <PageButton text="Home" active={isHomeActive} path="/home"/>
+=======
     
     const isHomeActive = matchPath({ path: "/home" }, endpoint);
     const homeTab = <div className={styles.leftNavHomeTab}>
         <PageButton text="Home" active={isHomeActive} path={"/home"}/>
+>>>>>>> origin/main
     </div>;
 
     const isMyAccountActive = matchPath({ path: "/profile" }, endpoint);
@@ -47,6 +66,11 @@ function LeftMiddle({ endpoint }) {
         <PageButton text="My Account" active={isMyAccountActive} path={"/profile"}/>
     </div>;
 
+<<<<<<< HEAD
+    const isPastTransactionsActive = matchPath({ path: "/past-transactions" }, endpoint);
+    const pastTransactionsTab = <div className="left-nav-past-transactions-tab">
+        <PageButton text="Past Transactions" active={isPastTransactionsActive} path={`/past-transactions`}/>
+=======
     const isTransferPointsActive = matchPath({ path: "/transfer-points" }, endpoint);
     const transferPointsTab = <div className={styles.leftNavTransferPointsTab}>
         <PageButton text="Transfer Points" active={isTransferPointsActive} path={"/transfer-points"}/>
@@ -60,13 +84,12 @@ function LeftMiddle({ endpoint }) {
     const isPastTransactionsActive = matchPath({ path: "/past-transactions" }, endpoint);
     const pastTransactionsTab = <div className={styles.leftNavPastTransactionsTab}>
         <PageButton text="Past Transactions" active={isPastTransactionsActive} path={"/past-transactions"}/>
+>>>>>>> origin/main
     </div>;
 
     return <div className={styles.leftNavLeftMiddle}>
         {homeTab}
         {myAccountTab}
-        {transferPointsTab}
-        {redeemPointsTab}
         {pastTransactionsTab}
     </div>;
 }
@@ -83,12 +106,18 @@ function LeftBottom() {
 function LeftNav({ id }) {
     const location = useLocation();
     const endpoint = location.pathname.toLowerCase();
+<<<<<<< HEAD
+    return <div id={id} className="left-nav">
+        <LeftTop />
+        <LeftMiddle endpoint={endpoint} />
+=======
     return <div id={id} className={styles.leftNav}>
         <div className={styles.leftNavScrollableContent}>
             <Menu />
             <LeftTop />
             <LeftMiddle endpoint={endpoint} />
         </div>
+>>>>>>> origin/main
         <LeftBottom />
     </div>;
 }

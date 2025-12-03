@@ -3,17 +3,46 @@ import {
     TableRow, Paper, TablePagination
 } from "@mui/material";
 import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
+<<<<<<< HEAD
+import { useEffect, useState } from "react";
+=======
 import { useState, useEffect } from "react";
+>>>>>>> origin/main
 import api from "../../api/api";
 import styles from "./UserTable.module.css"
   
 export default function UserTable({ userTableTitle }) {
     const [rows, setRows] = useState([]);
+<<<<<<< HEAD
+=======
     const [totalCount, setTotalCount] = useState(0);
+>>>>>>> origin/main
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [filter, setFilter] = useState("");
     const [sortBy, setSortBy] = useState("");
+<<<<<<< HEAD
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await api.get("/users", { params: { limit: 1000 } });
+                const data = res.data?.results ?? res.data ?? [];
+                setRows(Array.isArray(data) ? data : []);
+            } catch (err) {
+                setError(err?.response?.data?.error || "Failed to load users");
+                setRows([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUsers();
+    }, []);
+=======
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -40,6 +69,7 @@ export default function UserTable({ userTableTitle }) {
         };
         fetchUsers();
     }, [page, rowsPerPage, filter]);
+>>>>>>> origin/main
   
     const handleChangePage = (_, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (e) => {
@@ -48,6 +78,15 @@ export default function UserTable({ userTableTitle }) {
     };
 
     const processedRows = rows
+<<<<<<< HEAD
+    // FILTER
+    .filter((row) =>
+        (row.name || "").toLowerCase().includes(filter.toLowerCase()) ||
+        (row.utorid || "").toLowerCase().includes(filter.toLowerCase())
+    )
+    // SORT
+=======
+>>>>>>> origin/main
     .sort((a, b) => {
         if (!sortBy) {
             return 0;
@@ -65,6 +104,13 @@ export default function UserTable({ userTableTitle }) {
             return 0;
         }
     });
+
+    const formatDate = (value) => {
+        if (!value) return "—";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleDateString();
+    };
   
     return (
         <div className={styles.userTableContainer}>
@@ -72,7 +118,7 @@ export default function UserTable({ userTableTitle }) {
             <Box display="flex" gap={2} mb={2}>
                 {/* Filter Input */}
                 <TextField
-                    label="Filter by Utorid"
+                    label="Filter by UTORid"
                     variant="outlined"
                     size="small"
                     value={filter}
@@ -119,20 +165,42 @@ export default function UserTable({ userTableTitle }) {
                     </TableHead>
         
                     <TableBody>
+<<<<<<< HEAD
+                    {(loading ? [] : processedRows)
+                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                        .map((row) => (
+=======
                     {processedRows.map((row) => (
+>>>>>>> origin/main
                         <TableRow key={row.id}>
                             <TableCell>{row.id}</TableCell>
                             <TableCell>{row.role}</TableCell>
                             <TableCell>{row.name}</TableCell>
                             <TableCell>{row.email}</TableCell>
-                            <TableCell>{row.birthday}</TableCell>
+                            <TableCell>{formatDate(row.birthday)}</TableCell>
                             <TableCell>{row.points}</TableCell>
-                            <TableCell>{row.verified}</TableCell>
-                            <TableCell>{row.createdAt}</TableCell>
-                            <TableCell>{row.lastLogin}</TableCell>
-                            <TableCell> <button className={styles.moreDetailsBtn} >Manage User</button> </TableCell>
+                            <TableCell>{row.verified ? "Yes" : "No"}</TableCell>
+                            <TableCell>{formatDate(row.createdAt)}</TableCell>
+                            <TableCell>{formatDate(row.lastLogin)}</TableCell>
+                            <TableCell>
+                                <button className={styles.manageBtn} onClick = {() => ManageUserPopup(row)}>Manage User</button>
+                            </TableCell>
                         </TableRow>
+<<<<<<< HEAD
+                        ))}
+                    {loading && (
+                        <TableRow>
+                            <TableCell colSpan={10} className={styles.userTableEmpty}>Loading...</TableCell>
+                        </TableRow>
+                    )}
+                    {!loading && processedRows.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={10} className={styles.userTableEmpty}>{error || "No users found"}</TableCell>
+                        </TableRow>
+                    )}
+=======
                     ))}
+>>>>>>> origin/main
                     </TableBody>
                 </Table>
                 </TableContainer>
