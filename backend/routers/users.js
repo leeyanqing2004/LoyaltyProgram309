@@ -783,6 +783,25 @@ router.all("/me/transactions", clearanceRequired('regular'), async (req, res) =>
     }
 });
 
+// Lightweight lookup by UTORid so clients can resolve a userId before transfer
+router.get("/resolve/:utorid", clearanceRequired('regular'), async (req, res) => {
+    const utorid = req.params.utorid;
+    if (!utorid || typeof utorid !== "string") {
+        return res.status(400).json({ error: "Bad Request" });
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { utorid },
+        select: { id: true, utorid: true, name: true }
+    });
+
+    if (!user) {
+        return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json(user);
+});
+
 router.all("/:userId/transactions", clearanceRequired('regular'), async (req, res) => {
     if (req.method !== "POST") {
         return res.status(405).send({error: "Method Not Allowed"});
@@ -818,11 +837,13 @@ router.all("/:userId/transactions", clearanceRequired('regular'), async (req, re
         return res.status(403).json({ error: "Forbidden: sender not verified." });
     }
 
-    const receiverId = parseInt(req.params.userId)
+    const receiverIdentifier = req.params.userId;
+    const receiver = isNaN(receiverIdentifier)
+        ? await prisma.user.findUnique({ where: { utorid: receiverIdentifier } })
+        : await prisma.user.findUnique({ where: { id: parseInt(receiverIdentifier) } });
 
-    const receiver = await prisma.user.findUnique({where: { id: receiverId }})
     if (!receiver) {
-        return res.status(404).send({ error: "Receiver with userId not found" });
+        return res.status(404).send({ error: "Receiver with id or utorid not found" });
     }
 
     const newTransfer1 = await prisma.transaction.create({

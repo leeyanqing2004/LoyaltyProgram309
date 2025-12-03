@@ -72,7 +72,7 @@ export default function TransactionTable({
                     />
                     
                     <TextField
-                        label="CreatedBy"
+                        label="Created By"
                         variant="outlined"
                         size="small"
                         value={createdByFilter}
@@ -81,7 +81,7 @@ export default function TransactionTable({
 
                     {includeManageButton && 
                         <TextField
-                            label="Utorid"
+                            label="UTORid"
                             variant="outlined"
                             size="small"
                             value={utoridFilter}

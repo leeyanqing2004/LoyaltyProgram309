@@ -1,101 +1,154 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../api/api";
-import "./RedeemPointsPopup.css";
+import styles from "./RedeemPointsPopup.module.css";
 
-function RedeemPointsPopup() {
+function RedeemPointsPopup({ show = true, setShow, onClose }) {
     const { user } = useAuth();
     const [amount, setAmount] = useState("");
     const [remarks, setRemarks] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+    const [toast, setToast] = useState(null); // { message, type }
+
+    useEffect(() => {
+        if (!toast) return;
+        const timer = setTimeout(() => setToast(null), 2200);
+        return () => clearTimeout(timer);
+    }, [toast]);
+
+    const handleClose = () => {
+        if (setShow) setShow(false);
+        if (onClose) onClose();
+    };
 
     const handleSubmit = async () => {
+        setSuccess("");
         setError("");
 
         const amountOfPoints = parseInt(amount);
         if (!amount || isNaN(amountOfPoints)) {
-            setError("Please enter a valid amount of points!");
+            setToast({ message: "Please enter a valid number of points", type: "error" });
             return;
         }
 
         if (amountOfPoints <= 0) {
-            setError("Amount of points must be greater than zero!");
+            setToast({ message: "Amount of points must be greater than zero", type: "error" });
             return;
         }
 
         if (amountOfPoints > user.points) {
-            setError("You do not have enough points!");
+            setToast({ message: "You do not have enough points", type: "error" });
             return;
         }
 
         setSubmitting(true);
 
         try {
-            await api.post("users/me/transactions", {
+            await api.post("/users/me/transactions", {
                 type: "redemption",
-                points: amountOfPoints,
-                remarks: remarks
+                amount: amountOfPoints,
+                remark: remarks.trim()
             });
 
             setAmount("");
             setRemarks("");
-            setError("");
-            alert("Redemption request submitted successfully!");
+            setSuccess("Redemption request submitted");
+            setToast({ message: "Redemption request submitted", type: "success" });
         } catch (err) {
-            setError(err.response?.data?.error)
+            const message = err.response?.data?.error || "Failed to submit redemption";
+            setToast({ message, type: "error" });
+            setError(message);
         } finally {
             setSubmitting(false);
         }
     }; 
 
-    return <div className="redeem-points-popup-redemption-popup">
-        <div className="redeem-points-popup-content" onClick={(e) => e.stopPropagation()}>
-            <button className="redeem-points-popup-close-button">X</button>
-            <h2 className="redeem-points-popup-title">Redeem Points</h2>
-            <div className="redeem-points-popup-amount-of-points">
-                <label 
-                    className="redeem-points-popup-amount-of-points-label" 
-                    htmlFor="redeem-points-popup-amount-of-points-input"
-                >
-                    Amount of Points</label>
-                <input 
-                    id="redeem-points-popup-amount-of-points-input"
-                    type="number"
-                    name="redeem-points-popup-amount-of-points-input"
-                    placeholder="e.g. 1000"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    disabled={submitting}
-                />
-                {error && <span className="redeem-points-popup-error">{error}</span>}
-            </div>
-            <div className="redeem-points-popup-remarks">
-                <label 
-                    className="redeem-points-popup-remarks-label" 
-                    htmlFor="redeem-points-popup-remarks-input"
-                >
-                    Remarks
-                </label>
-                <textarea 
-                    id="redeem-points-popup-remarks-input"
-                    name="redeem-points-popup-remarks-input"
-                    placeholder="Enter any remarks here..."
-                    rows="4"
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                    disabled={submitting}
-                />
+    const handleReset = () => {
+        setAmount("");
+        setRemarks("");
+        setError("");
+        setSuccess("");
+        setToast(null);
+    };
+
+    return show && <div className={styles.redeemPointsPopupRedemptionPopup}>
+        <div className={styles.redeemPointsPopupContent} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.redeemPointsPopupCloseButton} onClick={handleClose}>X</button>
+            <h2 className={styles.redeemPointsPopupTitle}>Redeem Points</h2>
+            {!success && (
+                <>
+                    <div className={styles.redeemPointsPopupAmountOfPoints}>
+                        <label 
+                            className={styles.redeemPointsPopupAmountOfPointsLabel} 
+                            htmlFor="redeemPointsPopupAmountOfPointsInput"
+                        >
+                            Amount of Points</label>
+                        <input 
+                            id="redeemPointsPopupAmountOfPointsInput"
+                            className={styles.redeemPointsPopupAmountOfPointsInput}
+                            type="number"
+                            name="redeemPointsPopupAmountOfPointsInput"
+                            placeholder="e.g. 1000"
+                            min="1"
+                            step="1"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            disabled={submitting}
+                        />
+                    </div>
+                    <div className={styles.redeemPointsPopupRemarks}>
+                        <label 
+                            className={styles.redeemPointsPopupRemarksLabel} 
+                            htmlFor="redeemPointsPopupRemarksInput"
+                        >
+                            Remarks
+                        </label>
+                        <textarea 
+                            id="redeemPointsPopupRemarksInput"
+                            className={styles.redeemPointsPopupRemarksInput}
+                            name="redeemPointsPopupRemarksInput"
+                            placeholder="Enter any remarks here..."
+                            rows="3"
+                            value={remarks}
+                            onChange={(e) => setRemarks(e.target.value)}
+                            disabled={submitting}
+                        />
+                    </div>
+                </>
+            )}
+
+            <div className={styles.redeemPointsPopupMessage}>
+                {!error && success && (
+                    <div className={styles.redeemPointsPopupSuccessActions}>
+                        <button className={styles.redeemPointsPopupSubmitButton} onClick={handleClose}>Close</button>
+                        <button className={styles.redeemPointsPopupSubmitButton} onClick={handleReset}>Request another redemption</button>
+                    </div>
+                )}
             </div>
 
-            <button 
-                className="redeem-points-popup-submit-button"
-                onClick={handleSubmit}
-                disabled={submitting}
-            >
-                Request Redemption
-            </button>
+            {!success && (
+                <button 
+                    className={`${styles.redeemPointsPopupSubmitButton} ${submitting ? styles.loading : ""}`}
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                >
+                    {submitting ? "Submitting..." : "Request Redemption"}
+                </button>
+            )}
         </div>
+        {toast && (
+            <div
+                className={`${styles.redeemPointsToastPopup} ${
+                    toast.type === "error"
+                        ? styles.redeemPointsToastError
+                        : styles.redeemPointsToastSuccess
+                }`}
+            >
+                {toast.message}
+            </div>
+        )}
     </div>
 }
 

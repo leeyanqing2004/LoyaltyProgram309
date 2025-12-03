@@ -14,6 +14,7 @@ function AccountSection({ id }) {
     const role = user?.role;
     const createdAt = user?.createdAt;
     const memberSince = new Date(createdAt).toDateString();
+    // const status = user?.status;
 
     function Capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);

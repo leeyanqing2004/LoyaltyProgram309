@@ -1,4 +1,4 @@
-.transfer-points-redemption-popup {
+.redeemPointsPopupRedemptionPopup {
     /* Layout */
     position: fixed;
     display: flex;
@@ -14,28 +14,30 @@
 
     /* Decorations */
     background-color: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-.transfer-points-content {
+.redeemPointsPopupContent {
     /* Layout */
     position: relative;
     width: auto;
-    max-width: 320px;
     min-width: 280px;
+    max-width: 320px;
     display: flex;
     flex-direction: column;
-    gap: 0.6em;
+    gap: 0.75em;
     box-sizing: border-box;
 
     /* Spacing */
-    padding: 1.75em 1.75em 3em 1.75em;
+    padding: 1.5em 1.5em 2.5em 1.5em;
 
     /* Decorations */
     background-color: white;
     border-radius: 1em;
 }
 
-.transfer-points-close-button {
+.redeemPointsPopupCloseButton {
     /* Layout */
     position: absolute;
     width: auto;
@@ -52,111 +54,97 @@
     border: none;
 }
 
-.transfer-points-title {
+.redeemPointsPopupTitle {
     /* Spacing */
-    margin: 6px 0px 12px 0px;
+    margin: 10px 0px;
 
     /* Decorations */
     color: black;
 }
 
-.transfer-points-recipient-label {
+.redeemPointsPopupAmountOfPoints {
     /* Layout */
     display: block;
     width: 100%;
+    margin-bottom: 0.5em;
+}
+
+.redeemPointsPopupAmountOfPointsLabel {
+    /* Layout */
+    display: block;
     color: black;
     
     /* Spacing */
-    margin: 10px 0px;
+    margin: 8px 0px 6px 0px;
 }
 
-#transfer-points-recipient-input {
+.redeemPointsPopupAmountOfPointsInput {
     /* Layout */
     display: block;
     width: 100%;
+    box-sizing: border-box;
 
     /* Spacing */
-    margin: 10px 0px;
-    padding: 1em;
+    margin: 6px 0px 0 0;
+    padding: 0.85em;
 
     /* Decorations */
     border: 1px solid #ccc;
     border-radius: 1em !important;
-
 }
 
+.redeemPointsPopupError {
+    /* Layout */
+    display: block;
 
-.transfer-points-amount-of-points-label {
+    /* Decorations */
+    color: #b3261e; /* match transfer popup */
+}
+
+.redeemPointsPopupRemarks {
     /* Layout */
     display: block;
     width: 100%;
+    margin-top: 0.25em;
+}
+
+.redeemPointsPopupRemarksLabel { 
+    /* Layout */
+    display: block;
     color: black;
-    
+
     /* Spacing */
-    margin: 10px 0px;
+    margin: 8px 0px 6px 0px;
 }
 
-#transfer-points-amount-of-points-input {
-    /* Layout */
-    display: block;
-    width: 100%;
-
+.redeemPointsPopupRemarksInput {
     /* Spacing */
-    margin: 10px 0px;
-    padding: 1em;
+    margin: 6px 0px 0 0;
+    padding: 0.85em;
 
     /* Decorations */
     border: 1px solid #ccc;
     border-radius: 1em !important;
-
-}
-
-.transfer-points-remarks-label { 
-    /* Layout */
-    display: block;
     width: 100%;
-    color: black;
-
-    /* Spacing */
-    margin: 10px 0px;
-}
-
-#transfer-points-remarks-input {
-    /* Layout */
-    display: block;
-    width: 90%;
-    max-width: 100%;
-    min-height: 90px;
-    max-height: 120px;
+    box-sizing: border-box;
     resize: none;
-
-    /* Spacing */
-    margin: 6px 0px 0px 0px;
-    padding: 0.75em 0.85em;
-
-    /* Decorations */
-    border: 1px solid #ccc;
-    border-radius: 1em !important;
 }
 
-.transfer-points-submit-button {
+.redeemPointsPopupSubmitButton {
     padding: 1em;
     margin: 1em 0em;
     border: none;
     border-radius: 0.5em;
     color: white;
     background-color: #2A73B7;
-}
-
-.transfer-points-submit-button.secondary {
-    background-color: #2A73B7;
+    position: relative;
 }
 
 button {
     cursor: pointer;
 }
 
-.transfer-points-message {
+.redeemPointsPopupMessage {
     min-height: 0;
     display: flex;
     flex-direction: column;
@@ -167,15 +155,7 @@ button {
     gap: 0.15em;
 }
 
-.transfer-points-error {
-    color: #b3261e;
-    max-width: 100%;
-    word-break: break-word;
-    text-align: center;
-    animation: fadeIn 120ms ease-out;
-}
-
-.transfer-points-success-actions {
+.redeemPointsPopupSuccessActions {
     display: flex;
     gap: 0.5em;
     margin-top: 0.5em;
@@ -184,21 +164,12 @@ button {
     justify-content: flex-start;
 }
 
-.transfer-points-success-actions .transfer-points-submit-button {
+.redeemPointsPopupSuccessActions .redeemPointsPopupSubmitButton {
     margin: 0;
     padding: 0.75em 1.25em;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.transfer-points-submit-button.loading {
-    position: relative;
-}
-
-.transfer-points-submit-button.loading::after {
+.redeemPointsPopupSubmitButton.loading::after {
     content: "";
     position: absolute;
     inset: 2px;
@@ -212,13 +183,13 @@ button {
     to { transform: rotate(360deg); }
 }
 
-.transfer-points-toast-popup {
+.redeemPointsToastPopup {
     position: absolute;
     top: 3.25em;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.8);
-    color: white;
+    color: #fff !important;
     padding: 0.55em 0.85em;
     border-radius: 0.75em;
     font-size: 0.9em;
@@ -228,10 +199,17 @@ button {
     pointer-events: none;
 }
 
-.transfer-points-toast-popup.error {
+.redeemPointsToastError {
     background: rgba(139, 26, 26, 0.9);
+    color: #fff !important;
 }
 
-.transfer-points-toast-popup.success {
+.redeemPointsToastSuccess {
     background: rgba(24, 115, 62, 0.9);
+    color: #fff !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }

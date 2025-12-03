@@ -54,7 +54,7 @@ export default function UserTable({ userTableTitle }) {
             <Box display="flex" gap={2} mb={2}>
                 {/* Filter Input */}
                 <TextField
-                    label="Filter by Utorid"
+                    label="Filter by UTORid"
                     variant="outlined"
                     size="small"
                     value={filter}

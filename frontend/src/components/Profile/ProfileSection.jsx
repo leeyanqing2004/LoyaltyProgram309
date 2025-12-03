@@ -1,7 +1,8 @@
 import { useMatch, useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import api from "../../api/api";
-import RedeemPointsPopup from "../RedeemPoints";
+import RedeemPointsPopup from "../RedeemPointsPopup";
+import TransferPointsPopup from "../TransferPoints";
 import "./ProfileSection.css";
 
 function isValidName(name) {
@@ -73,6 +74,7 @@ function ProfileSection({ id }) {
     const [passwordError, setPasswordError] = useState("");
     const navigate = useNavigate();
     const { utorid } = useParams();
+    // Only show popups when the URL explicitly targets their routes
     const isRedeemRoute = Boolean(useMatch("/profile/:utorid/redeem-points"));
     const isTransferRoute = Boolean(useMatch("/profile/:utorid/transfer-points"));
 
@@ -223,7 +225,8 @@ function ProfileSection({ id }) {
                 </div>
             </div>
             {getEditingFields(locked, setLocked, handleCancelChanges, handleSaveChanges)}
-            <RedeemPointsPopup />
+            {isRedeemRoute && <RedeemPointsPopup onClose={handleCloseRedeem} />}
+            {isTransferRoute && <TransferPointsPopup onClose={handleCloseTransfer} />}
         </div>
     </div>;
 }
