@@ -128,7 +128,7 @@ export default function TransactionTable({
                     <TableHead>
                     <TableRow>
                         <TableCell>ID</TableCell>
-                        {includeManageButton && <TableCell>Utorid</TableCell>}
+                        {includeManageButton && <TableCell>UTORid</TableCell>}
                         <TableCell>Type</TableCell>
                         <TableCell>Amount</TableCell>
                         <TableCell>Remark</TableCell>
@@ -164,7 +164,7 @@ export default function TransactionTable({
                                         </div>
                                     ))}
                             </TableCell>
-                            <TableCell> {includeManageButton ? <button>Manage Transaction</button> : null} </TableCell>
+                            <TableCell> {includeManageButton ? <button className={styles.manageBtn}>Manage Transaction</button> : null} </TableCell>
                         </TableRow>
                         ))}
                     </TableBody>

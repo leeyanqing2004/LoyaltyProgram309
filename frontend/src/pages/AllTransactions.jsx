@@ -3,7 +3,7 @@ import TransactionTable from "../components/Tables/TransactionTable";
 import { getAllTransactions } from "../api/getTransactionsApi";
 import React, { useState, useEffect } from "react";
 
-function PastTransactions() {
+function AllTransactions() {
 
     const [allTransactions, setAllTransactions] = useState([]);
     const [count, setCount] = useState(0);
@@ -24,4 +24,4 @@ function PastTransactions() {
     );
 }
 
-export default PastTransactions;
+export default AllTransactions;

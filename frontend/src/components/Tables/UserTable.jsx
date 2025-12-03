@@ -3,29 +3,36 @@ import {
     TableRow, Paper, TablePagination
 } from "@mui/material";
 import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "../../api/api";
 import styles from "./UserTable.module.css"
   
 export default function UserTable({ userTableTitle }) {
-    // this is make a fake table with 50 rows, just to see
-    const rows = Array.from({ length: 50 }, (_, i) => ({
-        id: i + 1,
-        utorid: "[e.g. johndoe1]",
-        name: "[e.g. John Doe]",
-        email: "[e.g. john@gmail.com]",
-        birthday: "[e.g. 2000-01-01]",
-        role: "[e.g. regular]",
-        points: "[e.g. 0]",
-        createdAt: "[e.g. Dec. 10, 2025]",
-        lastLogin: "[e.g. Dec 11, 2025]",
-        verified: "[e.g. false]",
-        avatarUrl: "[e.g. avatar.jpeg]"
-    }));
-  
+    const [rows, setRows] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [filter, setFilter] = useState("");
     const [sortBy, setSortBy] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await api.get("/users", { params: { limit: 1000 } });
+                const data = res.data?.results ?? res.data ?? [];
+                setRows(Array.isArray(data) ? data : []);
+            } catch (err) {
+                setError(err?.response?.data?.error || "Failed to load users");
+                setRows([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUsers();
+    }, []);
   
     const handleChangePage = (_, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (e) => {
@@ -36,7 +43,8 @@ export default function UserTable({ userTableTitle }) {
     const processedRows = rows
     // FILTER
     .filter((row) =>
-        row.name.toLowerCase().includes(filter.toLowerCase())
+        (row.name || "").toLowerCase().includes(filter.toLowerCase()) ||
+        (row.utorid || "").toLowerCase().includes(filter.toLowerCase())
     )
     // SORT
     .sort((a, b) => {
@@ -98,7 +106,7 @@ export default function UserTable({ userTableTitle }) {
                     </TableHead>
         
                     <TableBody>
-                    {processedRows
+                    {(loading ? [] : processedRows)
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row) => (
                         <TableRow key={row.id}>
@@ -106,14 +114,26 @@ export default function UserTable({ userTableTitle }) {
                             <TableCell>{row.role}</TableCell>
                             <TableCell>{row.name}</TableCell>
                             <TableCell>{row.email}</TableCell>
-                            <TableCell>{row.birthday}</TableCell>
+                            <TableCell>{row.birthday || "—"}</TableCell>
                             <TableCell>{row.points}</TableCell>
-                            <TableCell>{row.verified}</TableCell>
-                            <TableCell>{row.createdAt}</TableCell>
-                            <TableCell>{row.lastLogin}</TableCell>
-                            <TableCell> <button className={styles.moreDetailsBtn} >Manage User</button> </TableCell>
+                            <TableCell>{row.verified ? "Yes" : "No"}</TableCell>
+                            <TableCell>{row.createdAt || "—"}</TableCell>
+                            <TableCell>{row.lastLogin || "—"}</TableCell>
+                            <TableCell>
+                                <button className={styles.manageBtn}>Manage User</button>
+                            </TableCell>
                         </TableRow>
                         ))}
+                    {loading && (
+                        <TableRow>
+                            <TableCell colSpan={10} className={styles.userTableEmpty}>Loading...</TableCell>
+                        </TableRow>
+                    )}
+                    {!loading && processedRows.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={10} className={styles.userTableEmpty}>{error || "No users found"}</TableCell>
+                        </TableRow>
+                    )}
                     </TableBody>
                 </Table>
                 </TableContainer>
