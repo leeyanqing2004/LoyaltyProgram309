@@ -1,24 +1,24 @@
 import { useAuth } from "../../contexts/AuthContext.jsx";
-import "./AccountSection.css";
+import styles from "./AccountSection.module.css";
 
 function AccountInfo({ label, value }) {
-    return <div className="account-section-account-info">
-        <p className="account-section-account-info-label">{label}</p>
-        <p className="account-section-account-info-value">{value}</p>
+    return <div className={styles.accountSectionAccountInfo}>
+        <p className={styles.accountSectionAccountInfoLabel}>{label}</p>
+        <p className={styles.accountSectionAccountInfoValue}>{value}</p>
     </div>;
 }
 
-function AccountSection({ id }) {
-    const { user, login, logout, createAccount, sendResetPassEmail, setPassword } = useAuth();
+function AccountSection({ id, className }) {
+    const { user } = useAuth();
     const utorid = user?.utorid;
     const role = user?.role;
     const createdAt = user?.createdAt;
     const memberSince = new Date(createdAt).toDateString();
 
-    return  <div id={id} className="account-section">
-                <div className="account-section-details">
-                    <div className="account-section-settings">
-                        <h2 className="account-section-title">Account Details</h2>
+    return  <div id={id} className={`${styles.accountSection} ${className || ''}`}>
+                <div className={styles.accountSectionDetails}>
+                    <div className={styles.accountSectionSettings}>
+                        <h2 className={styles.accountSectionTitle}>Account Details</h2>
                         {AccountInfo({label: "UTORid", value: utorid})}
                         {AccountInfo({label: "Role", value: role})}
                         {AccountInfo({label: "Member Since", value: memberSince})}
