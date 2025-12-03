@@ -51,7 +51,7 @@ function PastTransactions() {
                 includeManageButton={false} 
                 recentOnlyBool={false}
                 transactions={pastTransactions}
-                />;
+                />
             </div>
         </div>
     </div>;

@@ -36,7 +36,7 @@ function PastTransactions() {
 
             {/* everything to the right of the left Nav container */}
             <div className={styles.allTransactionsTableContainer}>
-                <TransactionTable transTableTitle={"All Transactions"} includeManageButton={true} recentOnlyBool={false} transactions={allTransactions} />;
+                <TransactionTable transTableTitle={"All Transactions"} includeManageButton={true} recentOnlyBool={false} transactions={allTransactions} />
             </div>
         </div>
     </div>;
