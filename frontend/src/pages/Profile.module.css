@@ -1,0 +1,62 @@
+:global(body) {
+    margin: 0;
+}
+
+.profilePageContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+}
+
+.profileNav {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+.profileLeftNavAndContentContainer {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.profileLeftNavContainer.nonvisible {
+    display: none;
+    width: 250px;
+    flex-shrink: 0;
+}
+
+.profileLeftNavContainer {
+    display: block;
+    width: 250px;
+    flex-shrink: 0;
+}
+
+.profileContentContainer {
+    display: flex;
+    flex-direction: column;
+    background-color: #F2F2F7;
+    width: 100%;
+    height: 100%;
+    max-width: 100vw;
+    max-height: 100vh;
+    padding: 20px;
+    gap: 20px;
+}
+
+.profileRightSide {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "profile-section account-section";
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.profileProfileSection {
+    grid-area: profile-section;
+}
+
+.profileAccountSection {
+    grid-area: account-section;
+}

@@ -1,9 +1,10 @@
-.new-guest-popup {
+.redeemPointsPopupRedemptionPopup {
     /* Layout */
     position: fixed;
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1000;
 
     /* Spacing */
     top: 0;
@@ -15,10 +16,12 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-.new-guest-popup-content {
+.redeemPointsPopupContent {
     /* Layout */
     position: relative;
     width: auto;
+    min-width: 400px;
+    max-width: 600px;
 
     /* Spacing */
     padding: 2em;
@@ -28,7 +31,7 @@
     border-radius: 1em;
 }
 
-.new-guest-popup-close-button {
+.redeemPointsPopupCloseButton {
     /* Layout */
     position: absolute;
     width: auto;
@@ -45,7 +48,7 @@
     border: none;
 }
 
-.new-guest-popup-title {
+.redeemPointsPopupTitle {
     /* Spacing */
     margin: 10px 0px;
 
@@ -53,7 +56,13 @@
     color: black;
 }
 
-.new-guest-popup-utorid-label {
+.redeemPointsPopupAmountOfPoints {
+    /* Layout */
+    display: block;
+    width: 100%;
+}
+
+.redeemPointsPopupAmountOfPointsLabel {
     /* Layout */
     display: block;
     color: black;
@@ -62,9 +71,11 @@
     margin: 10px 0px;
 }
 
-#new-guest-popup-utorid-input {
+.redeemPointsPopupAmountOfPointsInput {
     /* Layout */
     display: block;
+    width: 100%;
+    box-sizing: border-box;
 
     /* Spacing */
     margin: 10px 0px;
@@ -75,19 +86,48 @@
     border-radius: 1em !important;
 }
 
-.new-guest-popup-error {
+.redeemPointsPopupError {
+    /* Layout */
+    display: block;
+
     /* Decorations */
     color: #2A73B7;
 }
 
-.new-guest-popup-add-guest-button {
+.redeemPointsPopupRemarks {
     /* Layout */
+    display: block;
+    width: 100%;
+}
+
+.redeemPointsPopupRemarksLabel { 
+    /* Layout */
+    display: block;
+    color: black;
+
+    /* Spacing */
+    margin: 10px 0px;
+}
+
+.redeemPointsPopupRemarksInput {
+    /* Spacing */
+    margin: 10px 0px;
     padding: 1em;
-    margin: 1em 0em;
 
     /* Decorations */
+    border: 1px solid #ccc;
+    border-radius: 1em !important;
+}
+
+.redeemPointsPopupSubmitButton {
+    padding: 1em;
+    margin: 1em 0em;
     border: none;
     border-radius: 0.5em;
     color: white;
     background-color: #2A73B7;
+}
+
+button {
+    cursor: pointer;
 }

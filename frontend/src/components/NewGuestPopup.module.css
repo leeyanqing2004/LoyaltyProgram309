@@ -1,4 +1,4 @@
-.redeem-points-popup-redemption-popup {
+.newGuestPopup {
     /* Layout */
     position: fixed;
     display: flex;
@@ -15,7 +15,7 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-.redeem-points-popup-content {
+.newGuestPopupContent {
     /* Layout */
     position: relative;
     width: auto;
@@ -28,7 +28,7 @@
     border-radius: 1em;
 }
 
-.redeem-points-popup-close-button {
+.newGuestPopupCloseButton {
     /* Layout */
     position: absolute;
     width: auto;
@@ -45,7 +45,7 @@
     border: none;
 }
 
-.redeem-points-popup-title {
+.newGuestPopupTitle {
     /* Spacing */
     margin: 10px 0px;
 
@@ -53,7 +53,7 @@
     color: black;
 }
 
-.redeem-points-popup-amount-of-points-label {
+.newGuestPopupUtoridLabel {
     /* Layout */
     display: block;
     color: black;
@@ -62,7 +62,7 @@
     margin: 10px 0px;
 }
 
-#redeem-points-popup-amount-of-points-input {
+.newGuestPopupUtoridInput {
     /* Layout */
     display: block;
 
@@ -75,42 +75,19 @@
     border-radius: 1em !important;
 }
 
-.redeem-points-popup-error {
+.newGuestPopupError {
     /* Decorations */
     color: #2A73B7;
 }
 
-.redeem-points-popup-remarks-label { 
+.newGuestPopupAddGuestButton {
     /* Layout */
-    display: block;
-    color: black;
-
-    /* Spacing */
-    margin: 10px 0px;
-}
-
-#redeem-points-popup-remarks-input {
-    /* Layout */
-    display: block;
-
-    /* Spacing */
-    margin: 10px 0px;
-    padding: 1em;
-
-    /* Decorations */
-    border: 1px solid #ccc;
-    border-radius: 1em !important;
-}
-
-.redeem-points-popup-submit-button {
     padding: 1em;
     margin: 1em 0em;
+
+    /* Decorations */
     border: none;
     border-radius: 0.5em;
     color: white;
     background-color: #2A73B7;
-}
-
-button {
-    cursor: pointer;
 }

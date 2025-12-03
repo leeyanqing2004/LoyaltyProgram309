@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../api/api";
-import "./RedeemPointsPopup.css";
+import styles from "./RedeemPointsPopup.module.css";
 
-function RedeemPointsPopup() {
+function RedeemPointsPopup({ show, setShow }) {
     const { user } = useAuth();
     const [amount, setAmount] = useState("");
     const [remarks, setRemarks] = useState("");
@@ -15,7 +15,7 @@ function RedeemPointsPopup() {
 
         const amountOfPoints = parseInt(amount);
         if (!amount || isNaN(amountOfPoints)) {
-            setError("Please enter a valid amount of points!");
+            setError("Please enter a valid number of points!");
             return;
         }
 
@@ -34,8 +34,8 @@ function RedeemPointsPopup() {
         try {
             await api.post("users/me/transactions", {
                 type: "redemption",
-                points: amountOfPoints,
-                remarks: remarks
+                point: amountOfPoints,
+                remark: remarks
             });
 
             setAmount("");
@@ -49,47 +49,50 @@ function RedeemPointsPopup() {
         }
     }; 
 
-    return <div className="redeem-points-popup-redemption-popup">
-        <div className="redeem-points-popup-content" onClick={(e) => e.stopPropagation()}>
-            <button className="redeem-points-popup-close-button">X</button>
-            <h2 className="redeem-points-popup-title">Redeem Points</h2>
-            <div className="redeem-points-popup-amount-of-points">
+    return show && <div className={styles.redeemPointsPopupRedemptionPopup}>
+        <div className={styles.redeemPointsPopupContent} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.redeemPointsPopupCloseButton} onClick={() => setShow(false)}>X</button>
+            <h2 className={styles.redeemPointsPopupTitle}>Redeem Points</h2>
+            <div className={styles.redeemPointsPopupAmountOfPoints}>
                 <label 
-                    className="redeem-points-popup-amount-of-points-label" 
-                    htmlFor="redeem-points-popup-amount-of-points-input"
+                    className={styles.redeemPointsPopupAmountOfPointsLabel} 
+                    htmlFor="redeemPointsPopupAmountOfPointsInput"
                 >
                     Amount of Points</label>
                 <input 
-                    id="redeem-points-popup-amount-of-points-input"
+                    id="redeemPointsPopupAmountOfPointsInput"
+                    className={styles.redeemPointsPopupAmountOfPointsInput}
                     type="number"
-                    name="redeem-points-popup-amount-of-points-input"
+                    name="redeemPointsPopupAmountOfPointsInput"
                     placeholder="e.g. 1000"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     disabled={submitting}
                 />
-                {error && <span className="redeem-points-popup-error">{error}</span>}
+                <span className={styles.redeemPointsPopupError}>{error}</span>
             </div>
-            <div className="redeem-points-popup-remarks">
+            <div className={styles.redeemPointsPopupRemarks}>
                 <label 
-                    className="redeem-points-popup-remarks-label" 
-                    htmlFor="redeem-points-popup-remarks-input"
+                    className={styles.redeemPointsPopupRemarksLabel} 
+                    htmlFor="redeemPointsPopupRemarksInput"
                 >
                     Remarks
                 </label>
                 <textarea 
-                    id="redeem-points-popup-remarks-input"
-                    name="redeem-points-popup-remarks-input"
+                    id="redeemPointsPopupRemarksInput"
+                    className={styles.redeemPointsPopupRemarksInput}
+                    name="redeemPointsPopupRemarksInput"
                     placeholder="Enter any remarks here..."
                     rows="4"
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
                     disabled={submitting}
+                    style={{ width: '100%', boxSizing: 'border-box' }}
                 />
             </div>
 
             <button 
-                className="redeem-points-popup-submit-button"
+                className={styles.redeemPointsPopupSubmitButton}
                 onClick={handleSubmit}
                 disabled={submitting}
             >
