@@ -2,7 +2,6 @@ import { useMatch, useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import api from "../../api/api";
 import RedeemPointsPopup from "../RedeemPoints";
-import TransferPointsPopup from "../TransferPoints";
 import "./ProfileSection.css";
 
 function isValidName(name) {
@@ -124,8 +123,6 @@ function ProfileSection({ id }) {
             containsErrors = true;
         }
 
-        console.log("Birthday:", birthday);
-        console.log("Is valid birthday:", isValidBirthday(birthday));
         if (birthday && !isValidBirthday(birthday)) {
             setBirthdayError("Birthday must be a valid date in the format YYYY-MM-DD.");
             containsErrors = true;
@@ -226,8 +223,7 @@ function ProfileSection({ id }) {
                 </div>
             </div>
             {getEditingFields(locked, setLocked, handleCancelChanges, handleSaveChanges)}
-            {isRedeemRoute && <RedeemPointsPopup onClose={handleCloseRedeem} />}
-            {isTransferRoute && <TransferPointsPopup onClose={handleCloseTransfer} />}
+            <RedeemPointsPopup />
         </div>
     </div>;
 }

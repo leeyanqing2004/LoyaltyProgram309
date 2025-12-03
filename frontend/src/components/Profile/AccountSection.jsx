@@ -26,6 +26,7 @@ function AccountSection({ id }) {
                         {AccountInfo({label: "UTORid", value: utorid})}
                         {AccountInfo({label: "Role", value: Capitalize(role)})}
                         {AccountInfo({label: "Member Since", value: memberSince})}
+                        {/* {AccountInfo({label: "Status", value: status})} */}
                     </div>
                 </div>
             </div>;
