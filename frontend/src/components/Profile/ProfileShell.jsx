@@ -21,17 +21,9 @@ function ProfileShell({ children }) {
     return (
         <div className="profile-shell">
             <div className="profile-shell-nav">
-                <Nav />
+                <Nav onToggleNav={() => setNavOpen(prev => !prev)} navOpen={navOpen} />
             </div>
             <div className="profile-shell-body">
-                <button
-                    className="profile-shell-toggle"
-                    onClick={() => setNavOpen(prev => !prev)}
-                    aria-label="Toggle navigation"
-                    type="button"
-                >
-                    ☰
-                </button>
                 <div className={`profile-shell-left ${navOpen ? "open" : "collapsed"}`}>
                     <LeftNav />
                 </div>

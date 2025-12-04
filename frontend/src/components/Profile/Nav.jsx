@@ -2,7 +2,7 @@ import { useAuth } from "../../contexts/AuthContext.jsx";
 import { Link, useLocation } from "react-router-dom";
 import styles from "./Nav.module.css";
 
-function Nav({ id }) {
+function Nav({ id, onToggleNav, navOpen = true, className = "" }) {
     const { user } = useAuth();
     const location = useLocation();
     const path = location.pathname.toLowerCase();
@@ -14,9 +14,21 @@ function Nav({ id }) {
     const isProfile = path.startsWith("/profile/") || path === "/home";
     const isAllUsers = path.startsWith("/all-users");
     const isAllTransactions = path.startsWith("/all-transactions");
+    const navClassNames = `${styles.nav} ${className}`.trim();
 
     return (
-        <nav id={id} className={styles.nav}>
+        <nav id={id} className={navClassNames}>
+            {onToggleNav && (
+                <button
+                    type="button"
+                    className={styles.navToggle}
+                    aria-label={`${navOpen ? "Collapse" : "Expand"} sidebar`}
+                    aria-expanded={navOpen}
+                    onClick={onToggleNav}
+                >
+                    <span className={styles.navToggleIcon} />
+                </button>
+            )}
             <ul className={styles.navList}>
                 <li className={styles.navListItem}>
                     <Link className={`${styles.navListItemLink} ${isEvents ? styles.active : ""}`} to={eventsPath}>Events</Link>

@@ -6,6 +6,7 @@ import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/
 import { useState } from "react";
 import styles from "./TransactionTable.module.css";
 import ManageTransactionPopup from "../ManageTransactionPopup";
+import { capitalize } from "../../utils/capitalize";
 
   
 export default function TransactionTable({ 
@@ -43,11 +44,6 @@ export default function TransactionTable({
         setRowsPerPage(parseInt(e.target.value, 10));
         setPage(0);
     };
-
-    function Capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
 
     const processedRows = rows
     // FILTER
@@ -155,7 +151,7 @@ export default function TransactionTable({
                             <TableRow key={row.id}>
                                 <TableCell>{row.id}</TableCell>
                                 {includeManageButton && <TableCell>{row.utorid}</TableCell>}
-                                <TableCell>{Capitalize(row.type)}</TableCell>
+                                <TableCell>{capitalize(row.type)}</TableCell>
                                 <TableCell>{row.amount}</TableCell>
                                 <TableCell>{row.remark}</TableCell>
                                 <TableCell>{row.promotionIds}</TableCell>
@@ -169,7 +165,7 @@ export default function TransactionTable({
                                         )
                                         .map(([key, value]) => (
                                             <div key={key}>
-                                                <strong>{Capitalize(key)}:</strong> {value?.toString()}
+                                                <strong>{capitalize(key)}:</strong> {value?.toString()}
                                             </div>
                                         ))}
                                 </TableCell>
