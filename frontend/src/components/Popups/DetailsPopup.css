@@ -81,6 +81,12 @@
     word-break: break-word;
     flex: 1;
 }
+/* Shared error styling for popups */
+.popup-error {
+    color: #2A73B7;
+    margin-top: 0.25rem;
+    font-size: 0.95rem;
+}
 
 .popup-form {
     display: flex;
