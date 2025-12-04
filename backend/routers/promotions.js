@@ -92,6 +92,7 @@ router.all("/", async (req, res) => {
                 select: {
                     id: true,
                     name: true,
+                    description: true,
                     type: true,
                     startTime: true,
                     endTime: true,
