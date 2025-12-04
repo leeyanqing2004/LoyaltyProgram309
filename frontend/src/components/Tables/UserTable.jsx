@@ -3,11 +3,7 @@ import {
     TableRow, Paper, TablePagination
 } from "@mui/material";
 import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
-<<<<<<< HEAD
 import { useEffect, useState } from "react";
-=======
-import { useState, useEffect } from "react";
->>>>>>> origin/main
 import api from "../../api/api";
 import styles from "./UserTable.module.css"
 import ManageUserPopup from "../ManageUserPopup";
@@ -15,15 +11,10 @@ import { capitalize } from "../../utils/capitalize";
   
 export default function UserTable({ userTableTitle }) {
     const [rows, setRows] = useState([]);
-<<<<<<< HEAD
-=======
-    const [totalCount, setTotalCount] = useState(0);
->>>>>>> origin/main
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [filter, setFilter] = useState("");
     const [sortBy, setSortBy] = useState("");
-<<<<<<< HEAD
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -46,34 +37,6 @@ export default function UserTable({ userTableTitle }) {
         };
         fetchUsers();
     }, []);
-=======
-
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const params = {
-                    page: page + 1,
-                    limit: rowsPerPage,
-                }
-
-                if (filter) {
-                    params.name = filter;
-                }
-
-                const response = await api.get("/users", {
-                    params: params
-                });
-                setRows(response.data.results || []);
-                setTotalCount(response.data.count || 0);
-            } catch (err) {
-                console.error(err);
-                setRows([]);
-                setTotalCount(0);
-            }
-        };
-        fetchUsers();
-    }, [page, rowsPerPage, filter]);
->>>>>>> origin/main
   
     const handleChangePage = (_, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (e) => {
@@ -82,15 +45,12 @@ export default function UserTable({ userTableTitle }) {
     };
 
     const processedRows = rows
-<<<<<<< HEAD
     // FILTER
     .filter((row) =>
         (row.name || "").toLowerCase().includes(filter.toLowerCase()) ||
         (row.utorid || "").toLowerCase().includes(filter.toLowerCase())
     )
     // SORT
-=======
->>>>>>> origin/main
     .sort((a, b) => {
         if (!sortBy) {
             return 0;
@@ -170,13 +130,9 @@ export default function UserTable({ userTableTitle }) {
                     </TableHead>
         
                     <TableBody>
-<<<<<<< HEAD
                     {(loading ? [] : processedRows)
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row) => (
-=======
-                    {processedRows.map((row) => (
->>>>>>> origin/main
                         <TableRow key={row.id}>
                             <TableCell>{row.id}</TableCell>
                             <TableCell>{capitalize(row.role)}</TableCell>
@@ -196,7 +152,6 @@ export default function UserTable({ userTableTitle }) {
                                 </button>
                             </TableCell>
                         </TableRow>
-<<<<<<< HEAD
                         ))}
                     {loading && (
                         <TableRow>
@@ -208,20 +163,17 @@ export default function UserTable({ userTableTitle }) {
                             <TableCell colSpan={10} className={styles.userTableEmpty}>{error || "No users found"}</TableCell>
                         </TableRow>
                     )}
-=======
-                    ))}
->>>>>>> origin/main
                     </TableBody>
                 </Table>
                 </TableContainer>
         
                 <TablePagination
-                component="div"
-                count={totalCount}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
+                    component="div"
+                    count={processedRows.length}
+                    page={page}
+                    rowsPerPage={rowsPerPage}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Paper>
         </div>

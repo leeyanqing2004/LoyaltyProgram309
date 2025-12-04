@@ -1,13 +1,9 @@
 import { useMatch, useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import api from "../../api/api";
-<<<<<<< HEAD
 import RedeemPointsPopup from "../RedeemPointsPopup";
 import TransferPointsPopup from "../TransferPoints";
-import "./ProfileSection.css";
-=======
-import styles from "./ProfileSection.module.css";
->>>>>>> origin/main
+import "./ProfileSection.module.css";
 
 function isValidName(name) {
     return name && 1 <= name.length && name.length <= 50;
@@ -78,7 +74,7 @@ function ProfileSection({ id, className }) {
     const [passwordError, setPasswordError] = useState("");
     const navigate = useNavigate();
     const { utorid } = useParams();
-    // Only show popups when the URL explicitly targets their routes
+    
     const isRedeemRoute = Boolean(useMatch("/profile/:utorid/redeem-points"));
     const isTransferRoute = Boolean(useMatch("/profile/:utorid/transfer-points"));
 

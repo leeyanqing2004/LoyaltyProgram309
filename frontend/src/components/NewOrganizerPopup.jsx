@@ -1,6 +1,6 @@
 import { useState } from "react";
 import api from "../api/api";
-import "./NewGuestPopup.css";
+import "./NewGuestPopup.module.css";
 
 function NewOrganizerPopup({ eventId, onClose, onSuccess }) {
     const [utorid, setUtorid] = useState("");
