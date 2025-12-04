@@ -57,11 +57,13 @@ body {
 .allEventsTableTopContainerButton {
     /* Spacing */
     padding: 1em;
+    margin-right: 0;
 
     /* Decorations */
     border-radius: 0.5em;
     opacity: 1;
     color: #2A73B7;
+    font-weight: bold;
     background-color: white;
     border-color: #fafafa;
 }
@@ -70,4 +72,5 @@ body {
     display: flex;
     flex-direction: row;
     gap: 20px;
+    width: 100%;
 }

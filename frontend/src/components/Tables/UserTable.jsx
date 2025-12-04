@@ -105,7 +105,7 @@ export default function UserTable({ userTableTitle }) {
                         <MenuItem value="">None</MenuItem>
                         <MenuItem value="id">ID</MenuItem>
                         <MenuItem value="name">Name</MenuItem>
-                        <MenuItem value="utorid">Utorid</MenuItem>
+                        <MenuItem value="utorid">UTORid</MenuItem>
                         <MenuItem value="role">Role</MenuItem>
                         <MenuItem value="points">Points</MenuItem>
                     </Select>
