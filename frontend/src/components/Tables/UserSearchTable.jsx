@@ -13,6 +13,11 @@ import { useState, useEffect } from "react";
 import api from "../../api/api";
 import styles from "./UserTable.module.css";
 import PanelActionButton from "../Buttons/PanelActionButton";
+import NewPurchasePopup from "../Popups/NewPurchasePopup";
+import ProcessRedemptionPopup from "../Popups/ProcessRedemptionPopup";
+import SuccessInfoPopup from "../Popups/SuccessInfoPopup";
+import { createPurchase } from "../../api/getTransactionsApi";
+import { getPromotions } from "../../api/getPromotionsApi";
 
 export default function UserSearchTable() {
     const [rows, setRows] = useState([]);
@@ -20,6 +25,10 @@ export default function UserSearchTable() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [nameFilter, setNameFilter] = useState("");
+    const [purchaseForUtorid, setPurchaseForUtorid] = useState(null);
+    const [promotionsOptions, setPromotionsOptions] = useState([]);
+    const [showRedemption, setShowRedemption] = useState(false);
+    const [successModal, setSuccessModal] = useState(null);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -44,6 +53,20 @@ export default function UserSearchTable() {
         };
         fetchUsers();
     }, [page, rowsPerPage, nameFilter]);
+
+    // Load available promotions once for the popup options
+    useEffect(() => {
+        const loadPromos = async () => {
+            try {
+                const data = await getPromotions({ limit: 1000 });
+                setPromotionsOptions(data.results || []);
+            } catch (err) {
+                console.error("Failed to load promotions", err);
+                setPromotionsOptions([]);
+            }
+        };
+        loadPromos();
+    }, []);
 
     const handleChangePage = (_, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (e) => {
@@ -97,13 +120,13 @@ export default function UserSearchTable() {
                                     <TableCell>
                                         <PanelActionButton
                                             label="Process Redemption"
-                                            onClick={() => {}}
+                                            onClick={() => setShowRedemption(true)}
                                         />
                                     </TableCell>
                                     <TableCell>
                                         <PanelActionButton
                                             label="Create Purchase"
-                                            onClick={() => {}}
+                                            onClick={() => setPurchaseForUtorid(row.utorid)}
                                         />
                                     </TableCell>
                                 </TableRow>
@@ -121,6 +144,32 @@ export default function UserSearchTable() {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Paper>
+
+            {purchaseForUtorid && (
+                <NewPurchasePopup
+                    initialUtorid={purchaseForUtorid}
+                    promotionsOptions={promotionsOptions}
+                    onSubmit={async ({ utorid, spent, promotionIds, remark }) => {
+                        return await createPurchase({ utorid, spent, promotionIds, remark });
+                    }}
+                    onClose={() => setPurchaseForUtorid(null)}
+                />
+            )}
+
+            {showRedemption && (
+                <ProcessRedemptionPopup
+                    onClose={() => setShowRedemption(false)}
+                    onSuccess={(payload) => setSuccessModal(payload)}
+                />
+            )}
+
+            {successModal && (
+                <SuccessInfoPopup
+                    title={successModal.title}
+                    lines={successModal.lines}
+                    onClose={() => setSuccessModal(null)}
+                />
+            )}
         </div>
     );
 }
