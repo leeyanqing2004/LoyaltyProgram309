@@ -9,6 +9,9 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import PanelActionButton from "../components/Buttons/PanelActionButton";
 import RegisterUserPopup from "../components/Popups/RegisterUserPopup";
+import NewPurchasePopup from "../components/Popups/NewPurchasePopup";
+import { getPromotions } from "../api/getPromotionsApi";
+import { createPurchase } from "../api/getTransactionsApi";
 import DetailsPopup from "../components/Popups/DetailsPopup";
 
 // TODO: should we move the Nav and LeftNav components out of the Profile folder, since we'll use it
@@ -23,6 +26,8 @@ function Dashboard() {
     const [count, setCount] = useState(0);
     const [availablePoints, setavailablePoints] = useState(0);
     const [showRegisterPopup, setShowRegisterPopup] = useState(false);
+    const [showPurchasePopup, setShowPurchasePopup] = useState(false);
+    const [promotionsOptions, setPromotionsOptions] = useState([]);
     const [registeredUser, setRegisteredUser] = useState(null);
     {/* const [qrInfo, setQrInfo] = useState([]); */}
 
@@ -34,6 +39,15 @@ function Dashboard() {
 
             const pointsData = await getMyPoints();
             setavailablePoints(pointsData);
+
+            // load promotions for purchase popup
+            try {
+                const promos = await getPromotions({ limit: 1000 });
+                setPromotionsOptions(promos.results || []);
+            } catch (err) {
+                console.error("Failed to load promotions", err);
+                setPromotionsOptions([]);
+            }
         }
         loadData();
     }, []);
@@ -85,7 +99,7 @@ function Dashboard() {
                             <div className={styles.cashierButton}>
                                 <PanelActionButton
                                     label="+ Create Purchase"
-                                    onClick={() => {}}
+                                    onClick={() => setShowPurchasePopup(true)}
                                 />
                             </div>
                         </div>
@@ -107,6 +121,17 @@ function Dashboard() {
                     setShowRegisterPopup(false);
                     setRegisteredUser(userData);
                 }}
+            />
+        )}
+        {isCashier && showPurchasePopup && (
+            <NewPurchasePopup
+                initialUtorid=""
+                promotionsOptions={promotionsOptions}
+                onSubmit={async ({ utorid, spent, promotionIds, remark }) => {
+                    const res = await createPurchase({ utorid, spent, promotionIds, remark });
+                    return res;
+                }}
+                onClose={() => setShowPurchasePopup(false)}
             />
         )}
         {registeredUser && (
