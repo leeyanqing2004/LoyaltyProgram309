@@ -6,6 +6,8 @@ import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/
 import { useEffect, useState } from "react";
 import api from "../../api/api";
 import styles from "./UserTable.module.css"
+import ManageUserPopup from "../ManageUserPopup";
+import { capitalize } from "../../utils/capitalize";
   
 export default function UserTable({ userTableTitle }) {
     const [rows, setRows] = useState([]);
@@ -15,6 +17,8 @@ export default function UserTable({ userTableTitle }) {
     const [sortBy, setSortBy] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    const [activeUser, setActiveUser] = useState(null);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -64,6 +68,7 @@ export default function UserTable({ userTableTitle }) {
     };
   
     return (
+        <>
         <div className={styles.userTableContainer}>
             <div className={styles.userTableTitle}>{userTableTitle}</div>
             <Box display="flex" gap={2} mb={2}>
@@ -118,7 +123,7 @@ export default function UserTable({ userTableTitle }) {
                         .map((row) => (
                         <TableRow key={row.id}>
                             <TableCell>{row.id}</TableCell>
-                            <TableCell>{row.role}</TableCell>
+                            <TableCell>{capitalize(row.role)}</TableCell>
                             <TableCell>{row.name}</TableCell>
                             <TableCell>{row.email}</TableCell>
                             <TableCell>{formatDate(row.birthday)}</TableCell>
@@ -127,7 +132,12 @@ export default function UserTable({ userTableTitle }) {
                             <TableCell>{formatDate(row.createdAt)}</TableCell>
                             <TableCell>{formatDate(row.lastLogin)}</TableCell>
                             <TableCell>
-                                <button className={styles.manageBtn} onClick = {() => ManageUserPopup(row)}>Manage User</button>
+                                <button
+                                    className={styles.manageBtn}
+                                    onClick={() => setActiveUser(row)}
+                                >
+                                    Manage User
+                                </button>
                             </TableCell>
                         </TableRow>
                         ))}
@@ -155,6 +165,18 @@ export default function UserTable({ userTableTitle }) {
                 />
             </Paper>
         </div>
+        {activeUser && (
+            <ManageUserPopup
+                show={!!activeUser}
+                user={activeUser}
+                onClose={() => setActiveUser(null)}
+                onUserUpdate={(updatedUser) => {
+                    setActiveUser(updatedUser);
+                    setRows(rows.map(r => r.id === updatedUser.id ? updatedUser : r));
+                }}
+            />
+        )}
+    </>
     );
 }
   

@@ -2,7 +2,7 @@ import { useState } from "react";
 import api from "../api/api";
 import "./NewGuestPopup.css";
 
-function NewGuestPopup({ eventId, onClose, onSuccess }) {
+function NewOrganizerPopup({ eventId, onClose, onSuccess }) {
     const [utorid, setUtorid] = useState("");
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -17,16 +17,14 @@ function NewGuestPopup({ eventId, onClose, onSuccess }) {
         }
 
         setSubmitting(true);
-
         try {
-            await api.post(`/events/${eventId}/guests`, {
+            await api.post(`/events/${eventId}/organizers`, {
                 utorid: trimmed,
             });
-
             setUtorid("");
             onSuccess?.();
         } catch (err) {
-            setError(err.response?.data?.error || "Failed to add guest");
+            setError(err.response?.data?.error || "Failed to add organizer");
         } finally {
             setSubmitting(false);
         }
@@ -38,18 +36,17 @@ function NewGuestPopup({ eventId, onClose, onSuccess }) {
                 <button className="new-guest-popup-close-button" onClick={onClose}>
                     X
                 </button>
-                <h2 className="new-guest-popup-title">New Guest</h2>
+                <h2 className="new-guest-popup-title">New Organizer</h2>
                 <div className="new-guest-popup-utorid">
                     <label
                         className="new-guest-popup-utorid-label"
-                        htmlFor="new-guest-popup-utorid-input"
+                        htmlFor="new-organizer-popup-utorid-input"
                     >
                         UTORid
                     </label>
                     <input
-                        id="new-guest-popup-utorid-input"
+                        id="new-organizer-popup-utorid-input"
                         type="text"
-                        name="new-guest-popup-utorid-input"
                         placeholder="Enter UTORid"
                         value={utorid}
                         onChange={(e) => setUtorid(e.target.value)}
@@ -62,11 +59,12 @@ function NewGuestPopup({ eventId, onClose, onSuccess }) {
                     onClick={handleSubmit}
                     disabled={submitting}
                 >
-                    {submitting ? "Adding..." : "Add guest"}
+                    {submitting ? "Adding..." : "Add organizer"}
                 </button>
             </div>
         </div>
     );
 }
 
-export default NewGuestPopup;
+export default NewOrganizerPopup;
+

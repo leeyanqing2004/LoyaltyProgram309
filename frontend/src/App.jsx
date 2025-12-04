@@ -16,6 +16,7 @@ import AllEvents from './pages/AllEvents';
 import AvailablePromotions from './pages/AvailablePromotions';
 import AllPromotions from './pages/AllPromotions';
 import AllUsers from './pages/AllUsers';
+import ManageEvent from './pages/ManageEvent';
 import ProfileShell from "./components/Profile/ProfileShell.jsx";
 
 function RootRedirect() {
@@ -40,6 +41,7 @@ function App() {
           <Route path="/all-promotions" element={<AllPromotions />} />
           <Route path="/available-promotions" element={<AvailablePromotions />} />
           <Route path="/all-events" element={<ProfileShell><AllEvents /></ProfileShell>} />
+          <Route path="/manage-event/:eventId" element={<ProfileShell><ManageEvent /></ProfileShell>} />
           <Route path="/published-events" element={<ProfileShell><PublishedEvents /></ProfileShell>} />
           <Route path="/home" element={<ProfileShell><Dashboard /></ProfileShell>} />
           <Route path="/redeem-points" element={<RedeemPoints />} />

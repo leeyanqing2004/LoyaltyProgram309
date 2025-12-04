@@ -224,7 +224,8 @@ router.get('/', clearanceRequired('manager'), async (req, res) => {
                 createdAt: true,
                 lastLogin: true,
                 verified: true,
-                avatarUrl: true
+                avatarUrl: true,
+                suspicious: true
             }
         })
     ]);

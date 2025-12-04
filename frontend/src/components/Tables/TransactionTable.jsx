@@ -6,6 +6,7 @@ import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/
 import { useState } from "react";
 import styles from "./TransactionTable.module.css";
 import ManageTransactionPopup from "../ManageTransactionPopup";
+
   
 export default function TransactionTable({ 
     transTableTitle, includeManageButton, recentOnlyBool, transactions }) {
@@ -42,6 +43,11 @@ export default function TransactionTable({
         setRowsPerPage(parseInt(e.target.value, 10));
         setPage(0);
     };
+
+    function Capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
 
     const processedRows = rows
     // FILTER
@@ -149,7 +155,7 @@ export default function TransactionTable({
                             <TableRow key={row.id}>
                                 <TableCell>{row.id}</TableCell>
                                 {includeManageButton && <TableCell>{row.utorid}</TableCell>}
-                                <TableCell>{row.type}</TableCell>
+                                <TableCell>{Capitalize(row.type)}</TableCell>
                                 <TableCell>{row.amount}</TableCell>
                                 <TableCell>{row.remark}</TableCell>
                                 <TableCell>{row.promotionIds}</TableCell>
@@ -159,11 +165,11 @@ export default function TransactionTable({
                                     {Object.entries(row)
                                         .filter(
                                             ([key]) =>
-                                                !["id", "utorid", "earned", "remark", "promotionIds", "createdBy"].includes(key)
+                                                !["id", "utorid", "earned", "remark", "promotionIds", "createdBy", "amount", "type"].includes(key)
                                         )
                                         .map(([key, value]) => (
                                             <div key={key}>
-                                                <strong>{key}:</strong> {value?.toString()}
+                                                <strong>{Capitalize(key)}:</strong> {value?.toString()}
                                             </div>
                                         ))}
                                 </TableCell>
