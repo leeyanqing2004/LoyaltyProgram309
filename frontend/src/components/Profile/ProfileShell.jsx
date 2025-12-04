@@ -6,9 +6,13 @@ import LeftNav from "./LeftNav.jsx";
 import "./ProfileShell.css";
 
 function ProfileShell({ children }) {
-    const { user } = useAuth();
+    const { user, authLoading } = useAuth();
     const location = useLocation();
     const [navOpen, setNavOpen] = useState(true);
+
+    if (authLoading) {
+        return null;
+    }
 
     if (!user) {
         return <Navigate to="/login" replace state={{ from: location.pathname }} />;
