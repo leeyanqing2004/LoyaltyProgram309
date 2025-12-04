@@ -3,9 +3,10 @@ import {
     TableRow, Paper, TablePagination
 } from "@mui/material";
 import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/api";
-<<<<<<< HEAD
+import { useAuth } from "../../contexts/AuthContext";
 import styles from "./EventsTable.module.css";
 
 const formatDateTime = (value) => {
@@ -14,9 +15,6 @@ const formatDateTime = (value) => {
     if (isNaN(d.getTime())) return value;
     return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 };
-=======
-import styles from "./EventsTable.module.css"
->>>>>>> origin/main
   
 export default function EventsTable({ eventsTableTitle, managerViewBool }) {
     // this is make a fake table with 50 rows, just to see
@@ -33,16 +31,63 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
     //     published: "[e.g. false]"
     // }));
   
+    const { user } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const isManagerOrSuperuser = user?.role === "manager" || user?.role === "superuser";
     const [rows, setRows] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [filter, setFilter] = useState("");
     const [sortBy, setSortBy] = useState("");
-<<<<<<< HEAD
     const [rsvps, setRsvps] = useState({});
-=======
->>>>>>> origin/main
+    const [loadingRsvp, setLoadingRsvp] = useState({});
+    const [toast, setToast] = useState(null);
+    const [organizerEvents, setOrganizerEvents] = useState({});
+
+    // Check for success message from navigation state
+    const updateOrganizerStatus = useCallback(async (eventList) => {
+        if (!user || isManagerOrSuperuser || !Array.isArray(eventList) || !eventList.length) {
+            return;
+        }
+        try {
+            const statusPairs = await Promise.all(
+                eventList.map(async (event) => {
+                    try {
+                        const detail = await api.get(`/events/${event.id}`);
+                        const isOrganizer = detail.data.organizers?.some(
+                            (o) => o.utorid === user.utorid
+                        );
+                        return { id: event.id, isOrganizer: Boolean(isOrganizer) };
+                    } catch {
+                        return { id: event.id, isOrganizer: false };
+                    }
+                })
+            );
+            const map = {};
+            statusPairs.forEach(({ id, isOrganizer }) => {
+                if (isOrganizer) map[id] = true;
+            });
+            setOrganizerEvents(map);
+        } catch (err) {
+            console.error("Failed to check organizer status", err);
+        }
+    }, [user, isManagerOrSuperuser]);
+
+    useEffect(() => {
+        if (location.state?.success) {
+            setToast({ message: location.state.success, type: "success" });
+            // Clear the state so it doesn't show again on refresh
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, navigate, location.pathname]);
+
+    useEffect(() => {
+        if (!toast) return;
+        const timer = setTimeout(() => setToast(null), 3000);
+        return () => clearTimeout(timer);
+    }, [toast]);
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -63,8 +108,12 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                 const response = await api.get("/events", {
                     params: params
                 });
-                setRows(response.data.results || []);
+                const events = response.data.results || [];
+                setRows(events);
                 setTotalCount(response.data.count || 0);
+                // Reset RSVP status when events change
+                setRsvps({});
+                updateOrganizerStatus(events);
             } catch (err) {
                 console.error(err);
                 setRows([]);
@@ -72,11 +121,75 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
             }
         };
         fetchEvents();
-    }, [page, rowsPerPage, filter, managerViewBool]);
+    }, [page, rowsPerPage, filter, managerViewBool, updateOrganizerStatus]);
     const handleChangePage = (_, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (e) => {
         setRowsPerPage(parseInt(e.target.value, 10));
         setPage(0);
+    };
+
+    const handleRsvp = async (event) => {
+        const eventId = event.id;
+        const isRsvped = Boolean(rsvps[eventId]);
+        const now = new Date();
+        const endTime = new Date(event.endTime);
+
+        // Check if event has ended
+        if (now > endTime) {
+            setToast({ message: "Cannot RSVP to events that have ended", type: "error" });
+            return;
+        }
+
+        // Check if event is full (only when trying to RSVP)
+        if (!isRsvped && event.capacity !== null && event.numGuests >= event.capacity) {
+            setToast({ message: "This event is full", type: "error" });
+            return;
+        }
+
+        setLoadingRsvp((prev) => ({ ...prev, [eventId]: true }));
+
+        try {
+            if (isRsvped) {
+                // Un-RSVP: DELETE request
+                await api.delete(`/events/${eventId}/guests/me`);
+                setRsvps((prev) => ({ ...prev, [eventId]: false }));
+                setRows((prevRows) =>
+                    prevRows.map((r) =>
+                        r.id === eventId ? { ...r, numGuests: Math.max(0, r.numGuests - 1) } : r
+                    )
+                );
+                setToast({ message: "Successfully Un-RSVP'd from event", type: "success" });
+            } else {
+                // RSVP: POST request
+                const response = await api.post(`/events/${eventId}/guests/me`);
+                setRsvps((prev) => ({ ...prev, [eventId]: true }));
+                setRows((prevRows) =>
+                    prevRows.map((r) =>
+                        r.id === eventId
+                            ? { ...r, numGuests: response.data.numGuests || r.numGuests + 1 }
+                            : r
+                    )
+                );
+                setToast({ message: "Successfully RSVP'd to event", type: "success" });
+            }
+        } catch (err) {
+            const status = err.response?.status;
+            const errorMsg = err.response?.data?.error || "Failed to update RSVP";
+
+            if (status === 410) {
+                if (now > endTime) {
+                    setToast({ message: "Cannot RSVP to events that have ended", type: "error" });
+                } else {
+                    setToast({ message: "This event is full", type: "error" });
+                }
+            } else if (status === 400) {
+                setToast({ message: "Already RSVP'd to this event", type: "error" });
+            } else {
+                setToast({ message: errorMsg, type: "error" });
+            }
+        } finally {
+            setLoadingRsvp((prev) => ({ ...prev, [eventId]: false }));
+        }
     };
 
     const processedRows = rows
@@ -123,7 +236,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                         <MenuItem value="id">ID</MenuItem>
                         <MenuItem value="earned">Points Earned</MenuItem>
                         <MenuItem value="spent">Points Spent</MenuItem>
-                        <MenuItem value="utorid">Utorid</MenuItem>
+                        <MenuItem value="utorid">UTORid</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
@@ -165,11 +278,41 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                             {managerViewBool && <TableCell>{row.published ? "Yes" : "No"}</TableCell>}
 
                             <TableCell>
-                                <button className={styles.manageEventBtn}>Manage Event</button>
+                                {(() => {
+                                    const isOrganizerForEvent = Boolean(organizerEvents[row.id]);
+                                    if (isManagerOrSuperuser || isOrganizerForEvent) {
+                                        return (
+                                            <button
+                                                className={styles.manageEventBtn}
+                                                onClick={() => navigate(`/manage-event/${row.id}`)}
+                                            >
+                                                Manage Event
+                                            </button>
+                                        );
+                                    }
+                                    return <button className={styles.manageEventBtn}>More Details</button>;
+                                })()}
                             </TableCell>
                             <TableCell>
                                 {(() => {
                                     const isRsvped = Boolean(rsvps[row.id]);
+                                    const isLoading = Boolean(loadingRsvp[row.id]);
+                                    const now = new Date();
+                                    const endTime = new Date(row.endTime);
+                                    const isEnded = now > endTime;
+                                    const isFull = row.capacity !== null && row.numGuests >= row.capacity;
+                                    const isOrganizerForEvent = Boolean(organizerEvents[row.id]);
+                                    const canRsvp = !isEnded && (!isFull || isRsvped) && !isOrganizerForEvent;
+
+                                    let disabledReason = "";
+                                    if (isEnded) {
+                                        disabledReason = "This event has ended";
+                                    } else if (isFull && !isRsvped) {
+                                        disabledReason = "This event is full";
+                                    } else if (isOrganizerForEvent) {
+                                        disabledReason = "Organizers cannot RSVP";
+                                    }
+
                                     return (
                                         <button
                                             className={
@@ -177,14 +320,21 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                                                     ? styles.rsvpBtnSecondary
                                                     : styles.rsvpBtn
                                             }
-                                            onClick={() =>
-                                                setRsvps((prev) => ({
-                                                    ...prev,
-                                                    [row.id]: !isRsvped,
-                                                }))
-                                            }
+                                            onClick={() => handleRsvp(row)}
+                                            disabled={isLoading || !canRsvp}
+                                            title={disabledReason || (isRsvped ? "Click to un-RSVP" : "Click to RSVP")}
                                         >
-                                            {isRsvped ? "Un-RSVP" : "RSVP"}
+                                            {isLoading
+                                                ? "Loading..."
+                                                : isOrganizerForEvent
+                                                ? "Organizer"
+                                                : isRsvped
+                                                ? "Un-RSVP"
+                                                : isEnded
+                                                ? "Event Ended"
+                                                : isFull && !isRsvped
+                                                ? "Event Full"
+                                                : "RSVP"}
                                         </button>
                                     );
                                 })()}
@@ -205,6 +355,15 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                 onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Paper>
+            {toast && (
+                <div
+                    className={`${styles.toast} ${
+                        toast.type === "error" ? styles.toastError : styles.toastSuccess
+                    }`}
+                >
+                    {toast.message}
+                </div>
+            )}
         </div>
     );
 }

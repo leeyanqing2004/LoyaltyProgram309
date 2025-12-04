@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/api";
 import "./ManageTransactionPopup.css";
+import { capitalize } from "../utils/capitalize";
 
 const formatDateTime = (value) => {
     if (!value) return "--";
@@ -170,7 +171,7 @@ function ManageTransactionPopup({ show = true, onClose, transaction }) {
                 <DetailRow label="ID" value={transaction.id} />
                 <DetailRow label="UTORid" value={transaction.utorid} />
                 <DetailRow label="Amount" value={transaction.amount} />
-                <DetailRow label="Type" value={transaction.type} />
+                <DetailRow label="Type" value={capitalize(transaction.type)} />
                 <DetailRow label="Created By" value={transaction.createdBy} />
                 <DetailRow label="Remark" value={transaction.remark} />
                 <DetailRow label="Promotions Applied" value={transaction.promotionIds?.join(", ") || "--"} />
@@ -226,7 +227,7 @@ function ManageTransactionPopup({ show = true, onClose, transaction }) {
 
     const renderSuccess = () => (
         <>
-            {renderHeader("Adjustment Transaction")}
+            {renderHeader("Adjustment")}
             <div className="mtp-details">
                 <DetailRow label="id" value={createdTx?.id} />
                 <DetailRow label="utorid" value={createdTx?.utorid} />
