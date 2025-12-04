@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DetailsPopup from "./DetailsPopup";
 import PopupFormField from "./PopupFormField";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import { registerUser } from "../../api/usersApi";
 
 const INITIAL_FORM = {
@@ -97,6 +98,21 @@ export default function RegisterUserPopup({ open, onClose, onSuccess }) {
                     error={errors.email}
                     autoComplete="email"
                 />
+                {errors.utorid && (
+                    <div className="popup-error">
+                        <ErrorMessage message={errors.utorid} />
+                    </div>
+                )}
+                {errors.name && (
+                    <div className="popup-error">
+                        <ErrorMessage message={errors.name} />
+                    </div>
+                )}
+                {errors.email && (
+                    <div className="popup-error">
+                        <ErrorMessage message={errors.email} />
+                    </div>
+                )}
                 {statusMessage && (
                     <div className="form-status">{statusMessage}</div>
                 )}
@@ -110,6 +126,7 @@ export default function RegisterUserPopup({ open, onClose, onSuccess }) {
             </form>
         </DetailsPopup>
     );
-}
+};
+
 
 
