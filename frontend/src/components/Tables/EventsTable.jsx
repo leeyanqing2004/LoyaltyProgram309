@@ -15,8 +15,8 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [filter, setFilter] = useState("");
     const [sortBy, setSortBy] = useState("");
-    const [selectedEvent, setSelectedEvent] = useState(null); // State for selected event
-    const [rsvped, setRsvped] = useState(false); // State for RSVP status
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [rsvpedEventIds, setRsvpedEventIds] = useState(new Set());
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -25,22 +25,24 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                     page: page + 1,
                     limit: rowsPerPage,
                 };
+                if (filter) params.name = filter;
+                if (!managerViewBool) params.published = "true";
 
-                if (filter) {
-                    params.name = filter;
-                }
-
-                if (!managerViewBool) {
-                    params.published = "true";
-                }
-
+                // Fetch events
                 const response = await api.get("/events", { params });
-                setRows(response.data.results || []);
+                const events = response.data.results || [];
+                setRows(events);
                 setTotalCount(response.data.count || 0);
+
+                // Fetch RSVP status for all events in one call
+                const rsvpRes = await api.get("/users/me/guests");
+                const eventIds = rsvpRes.data.eventIds || [];
+                setRsvpedEventIds(new Set(eventIds));
             } catch (err) {
                 console.error(err);
                 setRows([]);
                 setTotalCount(0);
+                setRsvpedEventIds(new Set());
             }
         };
         fetchEvents();
@@ -54,21 +56,41 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
 
     const handleMoreDetails = (event) => {
         setSelectedEvent(event); // Set the selected event for the popup
-        setRsvped(false); // Reset RSVP status (you can fetch actual RSVP status if needed)
     };
 
     const handleClosePopup = () => {
         setSelectedEvent(null); // Close the popup
     };
 
-    const handleRsvp = () => {
-        setRsvped(true); // Mark as RSVPed
-        console.log("RSVPed to event:", selectedEvent);
+    const handleRsvp = async (eventId) => {
+        try {
+            // use /me so backend uses the logged-in user (no utorid in body)
+            await api.post(`/events/${eventId}/guests/me`);
+            // mark as RSVPed
+            setRsvpedEventIds(prev => {
+                const next = new Set(prev);
+                next.add(eventId);
+                return next;
+            });
+            // update displayed numGuests for that row
+            setRows(prev => prev.map(r => r.id === eventId ? { ...r, numGuests: (r.numGuests ?? 0) + 1 } : r));
+        } catch (error) {
+            console.error("Failed to RSVP:", error.response?.data || error.message);
+        }
     };
 
-    const handleUnRsvp = () => {
-        setRsvped(false); // Mark as not RSVPed
-        console.log("Un-RSVPed from event:", selectedEvent);
+    const handleUnRsvp = async (eventId) => {
+        try {
+            await api.delete(`/events/${eventId}/guests/me`);
+            setRsvpedEventIds(prev => {
+                const next = new Set(prev);
+                next.delete(eventId);
+                return next;
+            });
+            setRows(prev => prev.map(r => r.id === eventId ? { ...r, numGuests: Math.max((r.numGuests ?? 1) - 1, 0) } : r));
+        } catch (error) {
+            console.error("Failed to Un-RSVP:", error.response?.data || error.message);
+        }
     };
 
     const processedRows = rows
@@ -156,6 +178,25 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                                                 More Details
                                             </button>
                                         </TableCell>
+                                        <TableCell>
+                                            {!rsvpedEventIds.has(row.id) && (
+                                                <button
+                                                    className={styles.rsvpBtn}
+                                                    onClick={() => handleRsvp(row.id)}
+                                                    disabled={row.capacity !== null && row.numGuests >= row.capacity}
+                                                >
+                                                    RSVP
+                                                </button>
+                                            )}
+                                            {rsvpedEventIds.has(row.id) && (
+                                                <button
+                                                    className={styles.unRsvpBtn}
+                                                    onClick={() => handleUnRsvp(row.id)}
+                                                >
+                                                    Un-RSVP
+                                                </button>
+                                            )}
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                         </TableBody>
@@ -173,10 +214,10 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
             {selectedEvent && (
                 <EventDetailsPopup
                     event={selectedEvent}
-                    rsvped={rsvped}
+                    rsvped={rsvpedEventIds.has(selectedEvent.id)}
                     onClose={handleClosePopup}
-                    onRsvp={handleRsvp}
-                    onUnRsvp={handleUnRsvp}
+                    onRsvp={() => handleRsvp(selectedEvent.id)}
+                    onUnRsvp={() => handleUnRsvp(selectedEvent.id)}
                 />
             )}
         </div>
