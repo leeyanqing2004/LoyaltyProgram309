@@ -6,6 +6,7 @@ import {
 } from "@mui/material";
 import api from "../../api/api";
 import styles from "./EventsTable.module.css";
+import "../Popups/DetailsPopup.css";
 import EventDetailsPopup from "../Popups/EventDetailsPopup";
 
 export default function EventsTable({ eventsTableTitle, managerViewBool }) {
@@ -181,7 +182,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                                         <TableCell>
                                             {!rsvpedEventIds.has(row.id) && (
                                                 <button
-                                                    className={styles.rsvpBtn}
+                                                    className={`${styles.rsvpBtn} action-btn`}
                                                     onClick={() => handleRsvp(row.id)}
                                                     disabled={row.capacity !== null && row.numGuests >= row.capacity}
                                                 >
@@ -190,7 +191,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                                             )}
                                             {rsvpedEventIds.has(row.id) && (
                                                 <button
-                                                    className={styles.unRsvpBtn}
+                                                    className={`unrsvp-btn`}
                                                     onClick={() => handleUnRsvp(row.id)}
                                                 >
                                                     Un-RSVP
