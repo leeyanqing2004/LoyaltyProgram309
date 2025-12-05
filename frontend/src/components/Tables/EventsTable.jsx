@@ -16,21 +16,7 @@ const formatDateTime = (value) => {
     return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 };
   
-export default function EventsTable({ eventsTableTitle, managerViewBool }) {
-    // this is make a fake table with 50 rows, just to see
-    // const rows = Array.from({ length: 50 }, (_, i) => ({
-    //     id: i + 1,
-    //     name: "[Event Name]",
-    //     location: "[Event Location]",
-    //     startTime: "[Start Time]",
-    //     endTime: "[End Time]",
-    //     capacity: "[e.g. 200]",
-    //     numGuests: "[e.g. 7]",
-    //     pointsRemain: "[e.g. 500]",
-    //     pointsAwarded: "[e.g. 10]",
-    //     published: "[e.g. false]"
-    // }));
-  
+export default function EventsTable({ eventsTableTitle, managerViewBool, showRegisteredOnly = false }) {
     const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -45,7 +31,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
     const [loadingRsvp, setLoadingRsvp] = useState({});
     const [toast, setToast] = useState(null);
     const [organizerEvents, setOrganizerEvents] = useState({});
-    const [guestStatusChecked, setGuestStatusChecked] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // Check for success message from navigation state
     const updateOrganizerStatus = useCallback(async (eventList) => {
@@ -78,8 +64,11 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
 
     const updateGuestStatus = useCallback(async (eventList) => {
         if (!user || !Array.isArray(eventList) || !eventList.length) {
+            setLoading(false);
             return;
         }
+
+        setLoading(true);
         try {
             const statusPairs = await Promise.all(
                 eventList.map(async (event) => {
@@ -99,9 +88,10 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                 if (isGuest) map[id] = true;
             });
             setRsvps(map);
-            setGuestStatusChecked(true);
         } catch (err) {
             console.error("Failed to check RSVP status", err);
+        } finally {
+            setLoading(false);
         }
     }, [user]);
 
@@ -120,11 +110,17 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
     }, [toast]);
 
     useEffect(() => {
+        if (showRegisteredOnly) {
+            setPage(0);
+        }
+    }, [showRegisteredOnly]);
+
+    useEffect(() => {
         const fetchEvents = async () => {
             try {
                 const params = {
-                    page: page + 1,
-                    limit: rowsPerPage,
+                    page: showRegisteredOnly ? 1 : page + 1,
+                    limit: showRegisteredOnly ? 1000 : rowsPerPage
                 }
 
                 if (filter) {
@@ -151,7 +147,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
             }
         };
         fetchEvents();
-    }, [page, rowsPerPage, filter, managerViewBool, updateOrganizerStatus, updateGuestStatus]);
+    }, [page, rowsPerPage, filter, managerViewBool, showRegisteredOnly, updateOrganizerStatus, updateGuestStatus]);
     const handleChangePage = (_, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (e) => {
         setRowsPerPage(parseInt(e.target.value, 10));
@@ -222,7 +218,8 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
         }
     };
 
-    const processedRows = rows
+    const filteredRows = (showRegisteredOnly && !loading ? rows.filter(row => Boolean(rsvps[row.id])) : rows);
+    const processedRows = filteredRows
     // SORT
     .sort((a, b) => {
         if (!sortBy) {
@@ -291,7 +288,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                     </TableHead>
         
                     <TableBody>
-                    {processedRows
+                    {(!showRegisteredOnly || !loading) && processedRows
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row) => (
                         <TableRow key={row.id}>
@@ -378,7 +375,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
         
                 <TablePagination
                 component="div"
-                count={totalCount}
+                count={showRegisteredOnly ? processedRows.length : totalCount}
                 page={page}
                 rowsPerPage={rowsPerPage}
                 onPageChange={handleChangePage}
