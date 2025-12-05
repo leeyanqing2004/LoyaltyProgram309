@@ -1,85 +1,166 @@
 import { AvailablePointsDisplay, StartTransactionQR } from "../components/Dashboard/DashboardTopSection";
 import { getRecentTransactions } from "../api/getTransactionsApi";
 import { getMyPoints } from "../api/pointsAndQrApi.js";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useViewRole } from "../contexts/ViewRoleContext";
+import { getPromotions } from "../api/getPromotionsApi";
+import { createPurchase } from "../api/getTransactionsApi";
+import TransferPointsPopup from "../components/TransferPoints";
 import styles from "./Dashboard.module.css";
 import TransactionTable from "../components/Tables/TransactionTable";
-import TransferPointsPopup from "../components/TransferPoints";
 import RedeemPointsPopup from "../components/Popups/RedeemPointsPopup";
+import PanelActionButton from "../components/Buttons/PanelActionButton";
+import RegisterUserPopup from "../components/Popups/RegisterUserPopup";
+import NewPurchasePopup from "../components/Popups/NewPurchasePopup";
+import DetailsPopup from "../components/Popups/DetailsPopup";
 
 // TODO: should we move the Nav and LeftNav components out of the Profile folder, since we'll use it
 // for multiple pages?
 
 function Dashboard() {
-
+    //  const user = "cashier"
     const { user } = useAuth();
     const { viewRole } = useViewRole();
-    // const user = "cashier"; // FOR TESTING ONLY
+    const isCashierOrHigher = viewRole === "cashier" || viewRole === "manager" || viewRole === "superuser";
 
     const [recentTransactions, setRecentTransactions] = useState([]);
     const [count, setCount] = useState(0);
-    const [availablePoints, setavailablePoints] = useState(0);
-    {/* const [qrInfo, setQrInfo] = useState([]); */}
+    const [availablePoints, setavailablePoints] = useState(user?.points ?? null);
+    // const [qrInfo, setQrInfo] = useState([]);
+    const [showRegisterPopup, setShowRegisterPopup] = useState(false);
+    const [showPurchasePopup, setShowPurchasePopup] = useState(false);
+    const [promotionsOptions, setPromotionsOptions] = useState([]);
+    const [registeredUser, setRegisteredUser] = useState(null);
+    // const [qrInfo, setQrInfo] = useState([]);
     const [showTransfer, setShowTransfer] = useState(false);
     const [showRedeem, setShowRedeem] = useState(false);
+    const [pointsLoading, setPointsLoading] = useState(user?.points == null);
+    const didLoadRef = useRef(false);
 
     useEffect(() => {
+        if (didLoadRef.current) return;
+        didLoadRef.current = true;
         async function loadData() {
+            // Recent transactions
             const data = await getRecentTransactions();
             setRecentTransactions(data.results);
             setCount(data.count);
 
-            const pointsData = await getMyPoints();
-            setavailablePoints(pointsData);
+            // Points
+            if (availablePoints == null) {
+                setPointsLoading(true);
+                const pointsData = await getMyPoints();
+                if (typeof pointsData === "number") {
+                    setavailablePoints(pointsData);
+                }
+                setPointsLoading(false);
+            }
+
+            // Promotions for purchase popup
+            try {
+                const promos = await getPromotions({ limit: 1000 });
+                setPromotionsOptions(promos.results || []);
+            } catch (err) {
+                console.error("Failed to load promotions", err);
+                setPromotionsOptions([]);
+            }
         }
         loadData();
-    }, []);
+    }, [availablePoints]);
 
     return (
-        <div className={styles.dashboardDashContainer}>
+        <>
+            <div className={styles.dashboardDashContainer}>
                 <div className={styles.dashboardDashTopContainer}>
 
                     {/* Available Points container */}
                     <div className={styles.dashboardAvailPoints}>
                         <AvailablePointsDisplay 
                             availablePoints={availablePoints} 
+                            loading={pointsLoading}
                             onTransfer={() => setShowTransfer(true)}
                             onRedeem={() => setShowRedeem(true)}
                         />
                     </div>
 
-                {/* QR Code container */}
-                <div className={styles.dashboardQR}>
-                    <StartTransactionQR qrCodeInfo={"QR CODE INFO HERE"} />
+                    {/* QR Code container */}
+                    <div className={styles.dashboardQR}>
+                        <StartTransactionQR qrCodeInfo={"QR CODE INFO HERE"} />
+                    </div>
+
+                    {isCashierOrHigher && (
+                        <div className={styles.cashierButtonContainer}>
+                            <div className={styles.cashierButton}>
+                                <PanelActionButton
+                                    label="+ Register New User"
+                                    onClick={() => setShowRegisterPopup(true)}
+                                />
+                            </div>
+                            <div className={styles.cashierButton}>
+                                <PanelActionButton
+                                    label="+ Search User"
+                                    onClick={() => window.location.assign("/user-search")}
+                                />
+                            </div>
+                            <div className={styles.cashierButton}>
+                                <PanelActionButton
+                                    label="+ Create Purchase"
+                                    onClick={() => setShowPurchasePopup(true)}
+                                />
+                            </div>
+                        </div>
+                    )}
+
                 </div>
 
-                {/*{user?.role === "cashier" && ( */}
-                {viewRole === "cashier" && (
-                    <div className={styles.cashierButtonContainer}>
-                        <div className={styles.cashierButton}>
-                            <button>+ Register New User</button>
-                        </div>
-                        <div className={styles.cashierButton}>
-                            <button>+ Search User</button>
-                        </div>
-                        <div className={styles.cashierButton}>
-                            <button>+ Create Purchase</button>
-                        </div>
-                    </div>
-                )}
+                <div className={styles.dashboardDashBottomContainer}>
+                    <TransactionTable transTableTitle={"Recent Transactions"} includeManageButton={false} recentOnlyBool={true} transactions={recentTransactions} />
+                </div>
 
+                {showTransfer && <TransferPointsPopup onClose={() => setShowTransfer(false)} />}
+                {showRedeem && <RedeemPointsPopup show={showRedeem} setShow={setShowRedeem} />}
             </div>
-
-            <div className={styles.dashboardDashBottomContainer}>
-                <TransactionTable transTableTitle={"Recent Transactions"} includeManageButton={false} recentOnlyBool={true} transactions={recentTransactions}/>
-            </div>
-
-            {showTransfer && <TransferPointsPopup onClose={() => setShowTransfer(false)} />}
-            {showRedeem && <RedeemPointsPopup show={showRedeem} setShow={setShowRedeem} />}
-        </div>
-    );
+            {isCashierOrHigher && (
+                <RegisterUserPopup
+                    open={showRegisterPopup}
+                    onClose={() => setShowRegisterPopup(false)}
+                    onSuccess={(userData) => {
+                        setShowRegisterPopup(false);
+                        setRegisteredUser(userData);
+                    }}
+                />
+            )}
+            {isCashierOrHigher && showPurchasePopup && (
+                <NewPurchasePopup
+                    initialUtorid=""
+                    promotionsOptions={promotionsOptions}
+                    onSubmit={async ({ utorid, spent, promotionIds, remark }) => {
+                        const res = await createPurchase({ utorid, spent, promotionIds, remark });
+                        return res;
+                    }}
+                    onClose={() => setShowPurchasePopup(false)}
+                />
+            )}
+            {isCashierOrHigher && registeredUser && (
+                <DetailsPopup
+                    open={true}
+                    onClose={() => setRegisteredUser(null)}
+                    title="User Registered!"
+                    fields={[
+                        { label: "Utorid", value: registeredUser.utorid },
+                        { label: "Name", value: registeredUser.name },
+                        { label: "Email", value: registeredUser.email },
+                    ]}
+                    primaryAction={{
+                        label: "Close",
+                        onClick: () => setRegisteredUser(null),
+                        className: "action-btn",
+                    }}
+                />
+            )}
+        </>
+    )
 }
 
 export default Dashboard;

@@ -40,18 +40,28 @@
 .redeemPointsPopupCloseButton {
     /* Layout */
     position: absolute;
-    width: auto;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     
     /* Spacing */
     top: 1em;
     right: 1em;
-    padding: 0.5em;
+    padding: 0;
     line-height: 1em;
     
     /* Decorations */
     color: black;
     background: none;
     border: none;
+    border-radius: 50%;
+    transition: background 0.15s ease;
+}
+
+.redeemPointsPopupCloseButton:hover {
+    background: rgba(15, 23, 42, 0.06);
 }
 
 .redeemPointsPopupTitle {
@@ -91,6 +101,7 @@
     /* Decorations */
     border: 1px solid #ccc;
     border-radius: 1em !important;
+    font-family: inherit;
 }
 
 .redeemPointsPopupError {
@@ -128,6 +139,7 @@
     width: 100%;
     box-sizing: border-box;
     resize: none;
+    font-family: inherit;
 }
 
 .redeemPointsPopupSubmitButton {
@@ -139,6 +151,17 @@
     background-color: #2A73B7;
     position: relative;
 }
+
+.redeemPointsPopupCancelButton {
+    padding: 1em;
+    margin: 1em 0em;
+    border: none;
+    border-radius: 0.5em;
+    background: #e8f0fe;
+    color: #2A73B7;
+    position: relative;
+}
+
 
 button {
     cursor: pointer;
@@ -164,23 +187,14 @@ button {
     justify-content: flex-start;
 }
 
-.redeemPointsPopupSuccessActions .redeemPointsPopupSubmitButton {
+.redeemPointsPopupSuccessActions .redeemPointsPopupSubmitButton, .redeemPointsPopupCancelButton {
     margin: 0;
     padding: 0.75em 1.25em;
 }
 
-.redeemPointsPopupSubmitButton.loading::after {
-    content: "";
-    position: absolute;
-    inset: 2px;
-    border-radius: 0.4em;
-    border: 2px solid rgba(255,255,255,0.4);
-    border-left-color: transparent;
-    animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.redeemPointsPopupSubmitButton.loading, .redeemPointsPopupCancelButton.loading {
+    opacity: 0.8;
+    cursor: not-allowed;
 }
 
 .redeemPointsToastPopup {

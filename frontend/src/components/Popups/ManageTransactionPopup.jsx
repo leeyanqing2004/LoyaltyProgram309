@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/api";
 import "./ManageTransactionPopup.css";
-import { capitalize } from "../../utils/capitalize";
+import { Capitalize } from "../../utils/capitalize";
 
 const formatDateTime = (value) => {
     if (!value) return "--";
@@ -19,7 +19,7 @@ function DetailRow({ label, value }) {
     );
 }
 
-function ManageTransactionPopup({ show = true, onClose, transaction }) {
+function ManageTransactionPopup({ show = true, onClose, transaction, onTransactionUpdate }) {
     const [step, setStep] = useState("view"); // view | adjust | success
     const [utorid, setUtorid] = useState("");
     const [amount, setAmount] = useState("");
@@ -33,6 +33,7 @@ function ManageTransactionPopup({ show = true, onClose, transaction }) {
     const [suspiciousSubmitting, setSuspiciousSubmitting] = useState(false);
     const [suspicious, setSuspicious] = useState(false);
     const [promoFormatError, setPromoFormatError] = useState("");
+    const [currentTransaction, setCurrentTransaction] = useState(transaction);
 
     const parsedPromotions = useMemo(() => {
         return promotionIds
@@ -45,10 +46,11 @@ function ManageTransactionPopup({ show = true, onClose, transaction }) {
 
     useEffect(() => {
         if (!transaction) return;
+        setCurrentTransaction(transaction);
         setUtorid(transaction.utorid || "");
         setRelatedId(transaction.id || "");
         setRemark("");
-        setAmount(transaction.amount || "");
+        setAmount("");
         setPromotionIds("");
         setSuspicious(Boolean(transaction.suspicious));
         setStep("view");
@@ -91,58 +93,40 @@ function ManageTransactionPopup({ show = true, onClose, transaction }) {
     };
 
     const handleCreateAdjustment = async () => {
-        setError("");
-        setPromoFormatError("");
-        const parsedAmount = Number(amount);
-        const parsedRelated = Number(relatedId);
-        const promoInput = promotionIds.trim();
-        if (promoInput) {
-            const tokens = promoInput
-                .split(",")
-                .map((p) => p.trim())
-                .filter(Boolean);
-            const invalid = tokens.some((t) => !/^\d+$/.test(t));
-            if (invalid) {
-                const msg = "Incorrect format (e.g. 12, 15, 16)";
-                setPromoFormatError(msg);
-                setToast({ type: "error", message: msg });
-                return;
-            }
-        }
-
-        if (!utorid.trim()) {
-            setToast({ type: "error", message: "UTORid is required" });
-            return;
-        }
-        if (!Number.isFinite(parsedAmount) || parsedAmount === 0) {
-            setToast({ type: "error", message: "Amount must be a non-zero number" });
-            return;
-        }
-        if (!Number.isInteger(parsedRelated) || parsedRelated <= 0) {
-            setToast({ type: "error", message: "Related transaction ID must be a positive integer" });
-            return;
-        }
-
         setSubmitting(true);
+        setError("");
+        const numericAmount = Number(amount);
+        if (Number.isNaN(numericAmount)) {
+            setError("Please enter a valid adjustment amount.");
+            setSubmitting(false);
+            return;
+        }
         try {
             const payload = {
-                utorid: utorid.trim(),
+                utorid,
                 type: "adjustment",
-                amount: parsedAmount,
-                relatedId: parsedRelated,
-                remark: remark.trim(),
+                amount: numericAmount,
+                relatedId: transaction.id,
+                remark,
+                promotionIds: parsedPromotions,
             };
-            if (parsedPromotions.length) {
-                payload.promotionIds = parsedPromotions;
-            }
 
-            const res = await api.post("/transactions", payload);
-            setCreatedTx(res.data);
+            const response = await api.post("/transactions", payload);
+            setCreatedTx(response.data);
+
+            const updatedTx = response.data?.updatedTransaction
+                ? { ...transaction, ...response.data.updatedTransaction }
+                : transaction;
+
+            if (updatedTx && onTransactionUpdate) {
+                onTransactionUpdate(updatedTx);
+            }
+            setCurrentTransaction(updatedTx);
             setStep("success");
-            setToast({ type: "success", message: "Adjustment created" });
         } catch (err) {
-            const msg = err?.response?.data?.error || err.message || "Failed to create adjustment";
-            setToast({ type: "error", message: msg });
+            const message = err.response?.data?.error || err.response?.data?.message || "Failed to create adjustment";
+            setError(message);
+            setToast({ message, type: "error" });
         } finally {
             setSubmitting(false);
         }
@@ -164,88 +148,168 @@ function ManageTransactionPopup({ show = true, onClose, transaction }) {
         </div>
     );
 
-    const renderView = () => (
-        <>
-            {renderHeader("Transaction")}
-            <div className="mtp-details">
-                <DetailRow label="ID" value={transaction.id} />
-                <DetailRow label="UTORid" value={transaction.utorid} />
-                <DetailRow label="Amount" value={transaction.amount} />
-                <DetailRow label="Type" value={capitalize(transaction.type)} />
-                <DetailRow label="Created By" value={transaction.createdBy} />
-                <DetailRow label="Remark" value={transaction.remark} />
-                <DetailRow label="Promotions Applied" value={transaction.promotionIds?.join(", ") || "--"} />
-                <DetailRow label="Suspicious" value={suspicious ? "Yes" : "No"} />
-            </div>
-            <button className="mtp-primary" onClick={() => setStep("adjust")}>
-                Create Adjustment Transaction
-            </button>
-        </>
-    );
+    const renderView = () => {
+        const tx = currentTransaction || transaction;
+        return (
+            <>
+                {renderHeader("Transaction")}
+                <div className="mtp-details">
+                    <DetailRow label="ID" value={tx.id} />
+                    <DetailRow label="UTORid" value={tx.utorid} />
+                    <DetailRow label="Amount" value={tx.amount} />
+                    <DetailRow label="Type" value={Capitalize(tx.type)} />
+                    <DetailRow label="Created By" value={tx.createdBy} />
+                    <DetailRow label="Remark" value={tx.remark} />
+                    <DetailRow label="Promotions Applied" value={tx.promotionIds?.join(", ") || "--"} />
+                    <DetailRow label="Suspicious" value={suspicious ? "Yes" : "No"} />
+                </div>
+                <button className="mtp-primary" onClick={() => setStep("adjust")}>
+                    Create Adjustment Transaction
+                </button>
+            </>
+        );
+    };
 
-    const renderAdjust = () => (
-        <>
-            {renderHeader("Adjustment")}
-            <div className="mtp-field">
-                <label htmlFor="mtp-amount">Adjustment Amount</label>
-                <input
-                    id="mtp-amount"
-                    type="number"
-                    placeholder="e.g. -300"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    disabled={submitting}
-                />
-            </div>
-            <div className="mtp-field">
-                <label htmlFor="mtp-promos">Promotions to apply</label>
-                <input
-                    id="mtp-promos"
-                    type="text"
-                    placeholder="e.g. 12, 15, 18"
-                    value={promotionIds}
-                    onChange={(e) => setPromotionIds(e.target.value)}
-                    disabled={submitting}
-                />
-                {promoFormatError && <div className="mtp-hint error">{promoFormatError}</div>}
-            </div>
-            <div className="mtp-field mtp-remark-field">
-                <label htmlFor="mtp-remark">Remarks</label>
-                <textarea
-                    id="mtp-remark"
-                    rows="3"
-                    value={remark}
-                    onChange={(e) => setRemark(e.target.value)}
-                    disabled={submitting}
-                />
-            </div>
-            <button className={`mtp-primary ${submitting ? "loading" : ""}`} onClick={handleCreateAdjustment} disabled={submitting}>
-                {submitting ? "Submitting..." : "Create Adjustment Transaction"}
-            </button>
-        </>
-    );
+    const renderAdjust = () => {
+        const tx = currentTransaction || transaction;
+        const currentAmount = tx.amount || 0;
+        const adjustmentAmount = Number(amount) || 0;
+        const newAmount = currentAmount + adjustmentAmount;
+        
+        return (
+            <>
+                {renderHeader("Adjustment")}
+                <div className="mtp-details">
+                    <DetailRow label="Transaction ID" value={tx.id} />
+                    <DetailRow label="Current Amount" value={currentAmount} />
+                </div>
+                <div className="mtp-field">
+                    <label htmlFor="mtp-amount">Adjustment Amount</label>
+                    <input
+                        id="mtp-amount"
+                        type="number"
+                        placeholder="e.g. -50"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        disabled={submitting}
+                    />
+                    {adjustmentAmount !== 0 && (
+                        <div className="mtp-hint" style={{ color: adjustmentAmount < 0 ? "#d32f2f" : "#2e7d32" }}>
+                            New amount will be: {newAmount}
+                        </div>
+                    )}
+                </div>
+                <div className="mtp-field">
+                    <label htmlFor="mtp-promos">Promotions to apply</label>
+                    <input
+                        id="mtp-promos"
+                        type="text"
+                        placeholder="e.g. 12, 15, 18"
+                        value={promotionIds}
+                        onChange={(e) => setPromotionIds(e.target.value)}
+                        disabled={submitting}
+                    />
+                    {promoFormatError && <div className="mtp-hint error">{promoFormatError}</div>}
+                </div>
+                <div className="mtp-field mtp-remark-field">
+                    <label htmlFor="mtp-remark">Remarks</label>
+                    <textarea
+                        id="mtp-remark"
+                        rows="3"
+                        placeholder="Enter any remarks here..."
+                        value={remark}
+                        onChange={(e) => setRemark(e.target.value)}
+                        disabled={submitting}
+                    />
+                </div>
+                <button className={`mtp-primary ${submitting ? "loading" : ""}`} onClick={handleCreateAdjustment} disabled={submitting}>
+                    {submitting ? "Submitting..." : "Create Adjustment Transaction"}
+                </button>
+            </>
+        );
+    };
 
-    const renderSuccess = () => (
-        <>
-            {renderHeader("Adjustment")}
-            <div className="mtp-details">
-                <DetailRow label="id" value={createdTx?.id} />
-                <DetailRow label="utorid" value={createdTx?.utorid} />
-                <DetailRow label="amount" value={createdTx?.amount} />
-                <DetailRow label="adjusted transaction id" value={createdTx?.relatedId} />
-                <DetailRow label="remark" value={createdTx?.remark} />
-                <DetailRow label="promotion IDs applied" value={createdTx?.promotionIds?.join(", ") || "--"} />
-                <DetailRow label="created by" value={createdTx?.createdBy} />
+    const renderSuccess = () => {
+        const successTx = createdTx || currentTransaction || transaction;
+        if (!successTx) return null;
+        return (
+            <div className="mtp-success-card">
+                <button className="manage-transaction-popup-close-button" onClick={handleClose}>
+                    ×
+                </button>
+                <div className="mtp-success-title">Adjustment Transaction successfully created.</div>
+                <div className="mtp-success-details">
+                    <div className="mtp-success-row">
+                        <span className="mtp-success-label">id</span>
+                        <span className="mtp-success-value">{successTx.id}</span>
+                    </div>
+                    <div className="mtp-success-row">
+                        <span className="mtp-success-label">Utorid</span>
+                        <span className="mtp-success-value">{successTx.utorid}</span>
+                    </div>
+                    <div className="mtp-success-row">
+                        <span className="mtp-success-label">Amount</span>
+                        <span className="mtp-success-value">{successTx.amount}</span>
+                    </div>
+                    <div className="mtp-success-row">
+                        <span className="mtp-success-label">Adjusted Transaction Id</span>
+                        <span className="mtp-success-value">{successTx.relatedId}</span>
+                    </div>
+                    <div className="mtp-success-row">
+                        <span className="mtp-success-label">remark</span>
+                        <span className="mtp-success-value">{successTx.remark || "--"}</span>
+                    </div>
+                    <div className="mtp-success-row">
+                        <span className="mtp-success-label">Promotions IDs Applied</span>
+                        <span className="mtp-success-value">
+                            {successTx.promotionIds?.length ? successTx.promotionIds.join(", ") : "--"}
+                        </span>
+                    </div>
+                    <div className="mtp-success-row">
+                        <span className="mtp-success-label">Created By</span>
+                        <span className="mtp-success-value">{successTx.createdBy}</span>
+                    </div>
+                </div>
+                {createdTx?.updatedTransaction && (
+                    <div className="mtp-success-updated">
+                        <div className="mtp-success-updated-title">Updated Transaction</div>
+                        <div className="mtp-success-row">
+                            <span className="mtp-success-label">ID</span>
+                            <span className="mtp-success-value">{createdTx.updatedTransaction.id}</span>
+                        </div>
+                        <div className="mtp-success-row">
+                            <span className="mtp-success-label">New Amount</span>
+                            <span className="mtp-success-value">{createdTx.updatedTransaction.amount}</span>
+                        </div>
+                        {createdTx.updatedTransaction.earned !== undefined && (
+                            <div className="mtp-success-row">
+                                <span className="mtp-success-label">New Earned</span>
+                                <span className="mtp-success-value">{createdTx.updatedTransaction.earned}</span>
+                            </div>
+                        )}
+                        <div className="mtp-success-row">
+                            <span className="mtp-success-label">Type</span>
+                            <span className="mtp-success-value">{Capitalize(createdTx.updatedTransaction.type)}</span>
+                        </div>
+                    </div>
+                )}
             </div>
-        </>
-    );
+        );
+    };
+
+    const containerClass =
+        step === "success"
+            ? "manage-transaction-popup-content mtp-success-container"
+            : "manage-transaction-popup-content";
 
     return (
-        <div className="manage-transaction-popup">
-            <div className="manage-transaction-popup-content" onClick={(e) => e.stopPropagation()}>
-                <button className="manage-transaction-popup-close-button" onClick={handleClose}>
-                    X
-                </button>
+        <div className="manage-transaction-popup" onClick={handleClose}>
+            <div className={containerClass} onClick={(e) => e.stopPropagation()}>
+                {step !== "success" && (
+                    <button className="manage-transaction-popup-close-button" onClick={handleClose}>
+                        ✕
+                    </button>
+                )}
                 {step === "view" && renderView()}
                 {step === "adjust" && renderAdjust()}
                 {step === "success" && renderSuccess()}

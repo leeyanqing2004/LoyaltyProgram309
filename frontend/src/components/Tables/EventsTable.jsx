@@ -1,21 +1,17 @@
+import { useState, useEffect, useCallback } from "react";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead,
-    TableRow, Paper, TablePagination
+    TableRow, Paper, TablePagination, TextField, FormControl,
+    InputLabel, Select, MenuItem, Box, Pagination
 } from "@mui/material";
-import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
-import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useViewRole } from "../../contexts/ViewRoleContext";
 import api from "../../api/api";
 import styles from "./EventsTable.module.css";
-
-const formatDateTime = (value) => {
-    if (!value) return "—";
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return value;
-    return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-};
+import { formatDateTime } from "../../utils/formatDateTime";
+import "../Popups/DetailsPopup.css";
+import EventDetailsPopup from "../Popups/EventDetailsPopup";;
   
 export default function EventsTable({ eventsTableTitle, managerViewBool, showRegisteredOnly = false }) {
     const { user } = useAuth();
@@ -33,6 +29,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
     const [loadingRsvp, setLoadingRsvp] = useState({});
     const [toast, setToast] = useState(null);
     const [organizerEvents, setOrganizerEvents] = useState({});
+    const [guestStatusChecked, setGuestStatusChecked] = useState(false);
     const [loading, setLoading] = useState(false);
 
     // Check for success message from navigation state
@@ -66,11 +63,9 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
 
     const updateGuestStatus = useCallback(async (eventList) => {
         if (!user || !Array.isArray(eventList) || !eventList.length) {
-            setLoading(false);
             return;
         }
 
-        setLoading(true);
         try {
             const statusPairs = await Promise.all(
                 eventList.map(async (event) => {
@@ -92,8 +87,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
             setRsvps(map);
         } catch (err) {
             console.error("Failed to check RSVP status", err);
-        } finally {
-            setLoading(false);
         }
     }, [user]);
 
@@ -116,14 +109,19 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
             setPage(0);
         }
     }, [showRegisteredOnly]);
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [rsvpedEventIds, setRsvpedEventIds] = useState(new Set());
 
     useEffect(() => {
         const fetchEvents = async () => {
+            setGuestStatusChecked(false);
+            setLoadingRsvp({});
+            setLoading(true);
             try {
                 const params = {
-                    page: showRegisteredOnly ? 1 : page + 1,
-                    limit: showRegisteredOnly ? 1000 : rowsPerPage
-                }
+                    page: page + 1,
+                    limit: rowsPerPage,
+                };
 
                 if (filter) {
                     params.name = filter;
@@ -140,12 +138,24 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                 setRows(events);
                 setTotalCount(response.data.count || 0);
                 // Refresh organizer and RSVP status for current page
+                await updateOrganizerStatus(events);
+                await updateGuestStatus(events);
+                setGuestStatusChecked(true);
                 updateOrganizerStatus(events);
                 updateGuestStatus(events);
+
+                // Fetch RSVP status for all events in one call
+                const rsvpRes = await api.get("/users/me/guests");
+                const eventIds = rsvpRes.data.eventIds || [];
+                setRsvpedEventIds(new Set(eventIds));
             } catch (err) {
                 console.error(err);
                 setRows([]);
                 setTotalCount(0);
+                setGuestStatusChecked(true);
+                setRsvpedEventIds(new Set());
+            } finally {
+                setLoading(false);
             }
         };
         fetchEvents();
@@ -181,6 +191,11 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                 // Un-RSVP: DELETE request
                 await api.delete(`/events/${eventId}/guests/me`);
                 setRsvps((prev) => ({ ...prev, [eventId]: false }));
+                setRsvpedEventIds((prev) => {
+                    const next = new Set(prev);
+                    next.delete(eventId);
+                    return next;
+                });
                 setRows((prevRows) =>
                     prevRows.map((r) =>
                         r.id === eventId ? { ...r, numGuests: Math.max(0, r.numGuests - 1) } : r
@@ -191,6 +206,11 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                 // RSVP: POST request
                 const response = await api.post(`/events/${eventId}/guests/me`);
                 setRsvps((prev) => ({ ...prev, [eventId]: true }));
+                setRsvpedEventIds((prev) => {
+                    const next = new Set(prev);
+                    next.add(eventId);
+                    return next;
+                });
                 setRows((prevRows) =>
                     prevRows.map((r) =>
                         r.id === eventId
@@ -220,6 +240,16 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
         }
     };
 
+    const handleMoreDetails = (event) => {
+        setSelectedEvent(event); // Set the selected event for the popup
+    };
+
+    const handleClosePopup = () => {
+        setSelectedEvent(null); // Close the popup
+    };
+
+    // Note: unified RSVP toggle via handleRsvp(event). No duplicate handlers.
+
     const filteredRows = (showRegisteredOnly && !loading ? rows.filter(row => Boolean(rsvps[row.id])) : rows);
     const processedRows = filteredRows
     // SORT
@@ -244,7 +274,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
         <div className={styles.eventsTableContainer}>
             <div className={styles.eventsTableTitle}>{eventsTableTitle}</div>
             <Box display="flex" gap={2} mb={2}>
-                {/* Filter Input */}
                 <TextField
                     label="Filter by event name"
                     variant="outlined"
@@ -252,8 +281,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                 />
-
-                {/* Sort Dropdown */}
                 <FormControl size="small">
                     <InputLabel>Sort By</InputLabel>
                     <Select
@@ -266,7 +293,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                         <MenuItem value="id">ID</MenuItem>
                         <MenuItem value="earned">Points Earned</MenuItem>
                         <MenuItem value="spent">Points Spent</MenuItem>
-                        <MenuItem value="utorid">UTORid</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
@@ -287,114 +313,169 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                         {managerViewBool && <TableCell>Published</TableCell>}
                         <TableCell></TableCell>
                         <TableCell></TableCell>
-                    </TableRow>
-                    </TableHead>
+                        </TableRow>
+                        </TableHead>
         
-                    <TableBody>
-                    {displayRegistered && processedRows
-                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                        .map((row) => (
-                        <TableRow key={row.id}>
-                            <TableCell>{row.id}</TableCell>
-                            <TableCell>{row.name}</TableCell>
-                            <TableCell>{row.location}</TableCell>
-                            <TableCell>{formatDateTime(row.startTime)}</TableCell>
-                            <TableCell>{formatDateTime(row.endTime)}</TableCell>
-                            <TableCell>{row.numGuests}</TableCell>
+                        <TableBody>
+                    {loading && processedRows.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={managerViewBool ? 11 : 9}>
+                                <div className={styles.tableLoading}>
+                                    <div className={styles.spinner} />
+                                    <span>Loading events...</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ) : !loading && processedRows.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={managerViewBool ? 11 : 9}>
+                                <div className={styles.tableLoading}>
+                                    <span>No events to display.</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        displayRegistered && processedRows
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((row) => (
+                            <TableRow key={row.id}>
+                                <TableCell>{row.id}</TableCell>
+                                <TableCell>{row.name}</TableCell>
+                                <TableCell>{row.location}</TableCell>
+                                <TableCell>{formatDateTime(row.startTime)}</TableCell>
+                                <TableCell>{formatDateTime(row.endTime)}</TableCell>
+                                <TableCell>{row.numGuests}</TableCell>
 
-                            {managerViewBool && <TableCell>{row.capacity}</TableCell>}
-                            {managerViewBool && <TableCell>{row.pointsRemain}</TableCell>}
-                            {managerViewBool && <TableCell>{row.pointsAwarded}</TableCell>}
-                            {managerViewBool && <TableCell>{row.published ? "Yes" : "No"}</TableCell>}
+                                {managerViewBool && <TableCell>{row.capacity}</TableCell>}
+                                {managerViewBool && <TableCell>{row.pointsRemain}</TableCell>}
+                                {managerViewBool && <TableCell>{row.pointsAwarded}</TableCell>}
+                                {managerViewBool && <TableCell>{row.published ? "Yes" : "No"}</TableCell>}
 
-                            <TableCell>
-                                {(() => {
-                                    const isOrganizerForEvent = Boolean(organizerEvents[row.id]);
-                                    if (isManagerOrSuperuser || isOrganizerForEvent) {
+                                <TableCell>
+                                    {(() => {
+                                        const isOrganizerForEvent = Boolean(organizerEvents[row.id]);
+                                        if (isManagerOrSuperuser || isOrganizerForEvent) {
+                                            return (
+                                                <button
+                                                    className={styles.manageEventBtn}
+                                                    onClick={() => navigate(`/manage-event/${row.id}`)}
+                                                >
+                                                    Manage Event
+                                                </button>
+                                            );
+                                        }
+                                        return <button className={styles.manageEventBtn}>More Details</button>;
+                                    })()}
+                                </TableCell>
+                                <TableCell>
+                                    {(() => {
+                                        const isRsvped = Boolean(rsvps[row.id]);
+                                        const isLoading = Boolean(loadingRsvp[row.id]);
+                                        const now = new Date();
+                                        const endTime = new Date(row.endTime);
+                                        const isEnded = now > endTime;
+                                        const isFull = row.capacity !== null && row.numGuests >= row.capacity;
+                                        const isOrganizerForEvent = Boolean(organizerEvents[row.id]);
+                                        const canRsvp = !isEnded && (!isFull || isRsvped) && !isOrganizerForEvent;
+                                        const shouldShowUnRsvp = isRsvped;
+
+                                        let disabledReason = "";
+                                        if (isEnded) {
+                                            disabledReason = "This event has ended";
+                                        } else if (isFull && !isRsvped) {
+                                            disabledReason = "This event is full";
+                                        } else if (isOrganizerForEvent) {
+                                            disabledReason = "Organizers cannot RSVP";
+                                        }
+
+                                        if (!guestStatusChecked && !isOrganizerForEvent) {
+                                            return (
+                                                <button
+                                                    className={styles.rsvpBtnSecondary}
+                                                    disabled
+                                                >
+                                                    Loading...
+                                                </button>
+                                            );
+                                        }
+
                                         return (
                                             <button
-                                                className={styles.manageEventBtn}
-                                                onClick={() => navigate(`/manage-event/${row.id}`)}
+                                                className={
+                                                    shouldShowUnRsvp
+                                                        ? styles.rsvpBtnSecondary
+                                                        : styles.rsvpBtn
+                                                }
+                                                onClick={() => handleRsvp(row)}
+                                                disabled={isLoading || (!shouldShowUnRsvp && !canRsvp)}
+                                                title={disabledReason || (shouldShowUnRsvp ? "Click to un-RSVP" : "Click to RSVP")}
                                             >
-                                                Manage Event
+                                                {isLoading
+                                                    ? "Loading..."
+                                                    : isOrganizerForEvent
+                                                    ? "Organizer"
+                                                    : shouldShowUnRsvp
+                                                    ? "Un-RSVP"
+                                                    : isEnded
+                                                    ? "Event Ended"
+                                                    : isFull && !isRsvped
+                                                    ? "Event Full"
+                                                    : "RSVP"}
                                             </button>
                                         );
-                                    }
-                                    return <button className={styles.manageEventBtn}>More Details</button>;
-                                })()}
-                            </TableCell>
-                            <TableCell>
-                                {(() => {
-                                    const isRsvped = Boolean(rsvps[row.id]);
-                                    const isLoading = Boolean(loadingRsvp[row.id]);
-                                    const now = new Date();
-                                    const endTime = new Date(row.endTime);
-                                    const isEnded = now > endTime;
-                                    const isFull = row.capacity !== null && row.numGuests >= row.capacity;
-                                    const isOrganizerForEvent = Boolean(organizerEvents[row.id]);
-                                    const canRsvp = !isEnded && (!isFull || isRsvped) && !isOrganizerForEvent;
-
-                                    let disabledReason = "";
-                                    if (isEnded) {
-                                        disabledReason = "This event has ended";
-                                    } else if (isFull && !isRsvped) {
-                                        disabledReason = "This event is full";
-                                    } else if (isOrganizerForEvent) {
-                                        disabledReason = "Organizers cannot RSVP";
-                                    }
-
-                                    return (
-                                        <button
-                                            className={
-                                                isRsvped
-                                                    ? styles.rsvpBtnSecondary
-                                                    : styles.rsvpBtn
-                                            }
-                                            onClick={() => handleRsvp(row)}
-                                            disabled={isLoading || !canRsvp}
-                                            title={disabledReason || (isRsvped ? "Click to un-RSVP" : "Click to RSVP")}
-                                        >
-                                            {isLoading
-                                                ? "Loading..."
-                                                : isOrganizerForEvent
-                                                ? "Organizer"
-                                                : isRsvped
-                                                ? "Un-RSVP"
-                                                : isEnded
-                                                ? "Event Ended"
-                                                : isFull && !isRsvped
-                                                ? "RSVP"
-                                                : "RSVP"}
-                                        </button>
-                                    );
-                                })()}
-                            </TableCell>
-                            
-                        </TableRow>
-                        ))}
+                                    })()}
+                                </TableCell>
+                                
+                            </TableRow>
+                            ))
+                    )}
                     </TableBody>
                 </Table>
                 </TableContainer>
         
-                <TablePagination
-                component="div"
-                count={showRegisteredOnly ? processedRows.length : totalCount}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                />
+                <Box className={styles.tablePaginationBar}>
+                    <Pagination
+                        count={Math.max(1, Math.ceil(totalCount / rowsPerPage))}
+                        page={page + 1}
+                        onChange={(_, val) => handleChangePage(null, val - 1)}
+                        siblingCount={1}
+                        boundaryCount={1}
+                        disabled={false}
+                        className={styles.pagination}
+                        classes={{ ul: styles.paginationList }}
+                    />
+                    <FormControl size="small" sx={{ minWidth: 120 }} className={styles.rowsSelect}>
+                        <InputLabel id="events-rows-label">Rows</InputLabel>
+                        <Select
+                            labelId="events-rows-label"
+                            value={rowsPerPage}
+                            label="Rows"
+                            onChange={handleChangeRowsPerPage}
+                        >
+                            {[5, 10, 25, 50].map(opt => (
+                                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Box>
             </Paper>
             {toast && (
                 <div
-                    className={`${styles.toast} ${
-                        toast.type === "error" ? styles.toastError : styles.toastSuccess
-                    }`}
+                    className={`${styles.toast} ${toast.type === "error" ? styles.toastError : styles.toastSuccess
+                        }`}
                 >
                     {toast.message}
                 </div>
             )}
+            {selectedEvent && (
+                <EventDetailsPopup
+                    event={selectedEvent}
+                    rsvped={rsvpedEventIds.has(selectedEvent.id)}
+                    onClose={handleClosePopup}
+                    onRsvp={() => handleRsvp(selectedEvent)}
+                    onUnRsvp={() => handleRsvp(selectedEvent)}
+                />
+            )}
         </div>
     );
 }
-  

@@ -49,8 +49,7 @@ export const AuthProvider = ({ children }) => {
             }
         };
         fetchUser();
-
-    }, [navigate])
+    }, [])
 
     /*
      * Logout the currently authenticated user.
@@ -110,7 +109,7 @@ export const AuthProvider = ({ children }) => {
             const userData = userRes.data;
             setUser(userData);
 
-            navigate(`/home`); // TODO: hypothetical "/home" page right now
+            navigate(`/dashboard`); // TODO: hypothetical "/home" page right now
             return null;
         } catch (err) {
             return "Network error"
@@ -210,7 +209,7 @@ export const AuthProvider = ({ children }) => {
                 return data.error || "No account exists with this Utorid."
             }
 
-            navigate(`/set-password?token=${resetToken}`);
+            navigate(`/set-password?utorid=${utorid}&token=${resetToken}&fromCreate=true`);
             return null;
 
         } catch (err) {
@@ -218,8 +217,16 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Function that mergest the new updates into the user object
+    const updateUser = async (updates) => {
+        setUser(prevUser => ({
+            ...prevUser,
+            ...updates
+        }));
+    };
+
     return (
-        <AuthContext.Provider value={{ user, authLoading, login, logout, createAccount, sendResetPassEmail, setPassword }}>
+        <AuthContext.Provider value={{ user, authLoading, login, logout, createAccount, sendResetPassEmail, setPassword, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

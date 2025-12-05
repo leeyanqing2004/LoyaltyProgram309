@@ -308,7 +308,7 @@ router.all("/", async (req, res) => {
 
             const relatedTransaction = await prisma.transaction.findUnique({
                 where: { id: parseInt(relatedId) },
-                include: { recipient: true },
+                include: { recipient: true, sender: true },
             });
             if (!relatedTransaction) {
                 return res.status(404).json({ error: "Related Transaction not Found" });
@@ -358,70 +358,133 @@ router.all("/", async (req, res) => {
 
             // Now, actually adjust the related transaction
 
-            const recipientId = relatedTransaction.recipient?.id;
-            const recipientPoints = relatedTransaction.recipient?.points ?? 0;
-            let pointDelta = 0;
+            // Get recipient ID - try from recipient relation first, otherwise find by utorid
+            let recipientId = relatedTransaction.recipient?.id;
+            let recipientPoints = relatedTransaction.recipient?.points ?? 0;
+            let senderId = relatedTransaction.sender?.id;
+            let senderPoints = relatedTransaction.sender?.points ?? 0;
 
+            // If recipient is not set, find user by utorid
+            if (!recipientId && relatedTransaction.utorid) {
+                const userByUtorid = await prisma.user.findUnique({
+                    where: { utorid: relatedTransaction.utorid }
+                });
+                if (userByUtorid) {
+                    recipientId = userByUtorid.id;
+                    recipientPoints = userByUtorid.points;
+                }
+            }
+
+            if (!senderId && relatedTransaction.senderId) {
+                const senderUser = await prisma.user.findUnique({
+                    where: { id: relatedTransaction.senderId }
+                });
+                if (senderUser) {
+                    senderId = senderUser.id;
+                    senderPoints = senderUser.points;
+                }
+            }
+            
+            let pointDeltaRecipient = 0;
+            let pointDeltaSender = 0;
+
+            // Use PATCH endpoint to update the transaction
+            let patchPayload = {};
+            
             if (relatedTransaction.type === 'purchase') {
                 const newAmount = relatedTransaction.amount + amount;
                 const newEarned = relatedTransaction.earned + amount;
+                patchPayload = { amount: newAmount, earned: newEarned };
                 if (!relatedTransaction.suspicious && recipientId) {
-                    pointDelta = amount;
+                    pointDelta = -amount;
                 }
-                await prisma.transaction.update({
-                    where: { id: parseInt(relatedId) },
-                    data: {
-                        amount: newAmount,
-                        earned: newEarned,
-                        promotions: promotionIds?.length
-                            ? {
-                                  create: promotionIds.map((promotionId) => ({
-                                      promotion: { connect: { id: promotionId } }
-                                  }))
-                              }
-                            : undefined
-                    }
-                });
             } else if (relatedTransaction.type === 'event') {
                 const newAmount = relatedTransaction.amount + amount;
+                patchPayload = { amount: newAmount };
                 pointDelta = amount;
-                await prisma.transaction.update({
+            } else if (relatedTransaction.type === 'redemption') {
+                const newAmount = relatedTransaction.amount + amount;
+                patchPayload = { amount: newAmount };
+                pointDelta = -amount;
+            } else if (relatedTransaction.type === 'transfer') {
+                const newAmount = relatedTransaction.amount + amount;
+                patchPayload = { amount: newAmount };
+                pointDeltaRecipient = amount;
+                pointDeltaSender = -amount;
+            }
+
+            // Update the transaction using PATCH endpoint logic
+            if (Object.keys(patchPayload).length > 0) {
+                // Use the same update logic as the PATCH endpoint
+                const updated = await prisma.transaction.update({
                     where: { id: parseInt(relatedId) },
-                    data: {
-                        amount: newAmount,
-                        promotions: promotionIds?.length
-                            ? {
-                                  create: promotionIds.map((promotionId) => ({
-                                      promotion: { connect: { id: promotionId } }
-                                  }))
-                              }
-                            : undefined
+                    data: patchPayload
+                });
+                console.log(`Updated transaction ${relatedId}: amount ${relatedTransaction.amount} -> ${updated.amount}`);
+            }
+
+            // apply point delta after transaction adjustment
+            if (relatedTransaction.type === 'transfer') {
+                // Find the paired transfer transaction (the other side of the same transfer)
+                const paired = await prisma.transaction.findFirst({
+                    where: {
+                        type: 'transfer',
+                        senderId: relatedTransaction.senderId,
+                        recipientId: relatedTransaction.recipientId,
+                        NOT: { id: parseInt(relatedId) }
                     }
                 });
-            } else { // TODO: IMPLEMENT FOR TRANSFER & REDEMPTION
-                await prisma.transaction.update({
-                    where: { id: parseInt(relatedId) },
+
+                // Guard negative balances
+                if (senderId && senderPoints + pointDeltaSender < 0) {
+                    return res.status(400).json({ error: "Sender would go negative; adjustment denied" });
+                }
+                if (recipientId && recipientPoints + pointDeltaRecipient < 0) {
+                    return res.status(400).json({ error: "Recipient would go negative; adjustment denied" });
+                }
+
+                // Update both transfer records if we found the pair
+                if (paired) {
+                    await prisma.transaction.update({
+                        where: { id: paired.id },
+                        data: { amount: (paired.amount ?? 0) + amount }
+                    });
+                }
+
+                if (senderId && pointDeltaSender !== 0) {
+                    await prisma.user.update({
+                        where: { id: senderId },
+                        data: { points: senderPoints + pointDeltaSender }
+                    });
+                }
+                if (recipientId && pointDeltaRecipient !== 0) {
+                    await prisma.user.update({
+                        where: { id: recipientId },
+                        data: { points: recipientPoints + pointDeltaRecipient }
+                    });
+                }
+            } else if (recipientId && pointDeltaRecipient !== 0) {
+                if (recipientPoints + pointDeltaRecipient < 0) {
+                    return res.status(400).json({ error: "Resulting points would be negative; adjustment denied" });
+                }
+                await prisma.user.update({
+                    where: { id: recipientId },
                     data: {
-                        promotions: promotionIds?.length
-                            ? {
-                                  create: promotionIds.map((promotionId) => ({
-                                      promotion: { connect: { id: promotionId } }
-                                  }))
-                              }
-                            : undefined
+                        points: recipientPoints + pointDeltaRecipient
                     }
                 });
             }
 
-            // apply point delta after transaction adjustment
-            if (recipientId && pointDelta !== 0) {
-                await prisma.user.update({
-                    where: { id: recipientId },
-                    data: {
-                        points: recipientPoints + pointDelta
-                    }
-                });
-            }
+            // Fetch the updated related transaction to verify the update
+            const updatedRelatedTransaction = await prisma.transaction.findUnique({
+                where: { id: parseInt(relatedId) },
+                select: {
+                    id: true,
+                    amount: true,
+                    earned: true,
+                    type: true
+                }
+            });
 
             return res.status(201).json({
                 id: newAdjustment.id,
@@ -431,7 +494,13 @@ router.all("/", async (req, res) => {
                 relatedId: newAdjustment.relatedId,
                 remark: newAdjustment.remark, 
                 promotionIds: newAdjustment.promotions.map(p => p.promotionId),
-                createdBy: newAdjustment.createdBy.utorid
+                createdBy: newAdjustment.createdBy.utorid,
+                updatedTransaction: updatedRelatedTransaction ? {
+                    id: updatedRelatedTransaction.id,
+                    amount: updatedRelatedTransaction.amount,
+                    earned: updatedRelatedTransaction.earned,
+                    type: updatedRelatedTransaction.type
+                } : null
             });
         }
     }
@@ -581,6 +650,92 @@ router.all("/", async (req, res) => {
 });
 
 router.all("/:transactionId", clearanceRequired('manager'), async (req, res) => {
+    if (req.method === "PATCH") {
+        const transactionId = req.params.transactionId;
+        const transaction = await prisma.transaction.findUnique({
+            where: { id: parseInt(transactionId) },
+            include: { recipient: true }
+        });
+        
+        if (!transaction) {
+            return res.status(404).send({ error: "Transaction not found" });
+        }
+
+        const keys = Object.keys(req.body);
+        const allowedKeys = ['amount', 'earned', 'remark', 'promotionIds'];
+        const unknownKeys = keys.filter(key => !allowedKeys.includes(key));
+        if (unknownKeys.length > 0) {
+            return res.status(400).json({ error: `Unknown field(s): ${unknownKeys.join(', ')}` });
+        }
+
+        const { amount, earned, remark, promotionIds } = req.body;
+
+        if (!checkTypes([amount, earned, remark, promotionIds], ['number', 'number', 'string', 'array'], [false, false, false, false])) {
+            return res.status(400).json({ error: "Faulty payload field type." });
+        }
+
+        const updateData = {};
+        if (amount !== undefined) updateData.amount = amount;
+        if (earned !== undefined) updateData.earned = earned;
+        if (remark !== undefined) updateData.remark = remark;
+
+        if (promotionIds !== undefined && promotionIds.length > 0) {
+            const promotions = await prisma.promotion.findMany({
+                where: { id: { in: promotionIds } }
+            });
+            if (promotions.length !== promotionIds.length) {
+                return res.status(404).json({ error: "One or more promotionIds not found" });
+            }
+
+            await prisma.transactionPromotion.deleteMany({
+                where: { transactionId: parseInt(transactionId) }
+            });
+
+            updateData.promotions = {
+                create: promotionIds.map((promotionId) => ({
+                    promotion: { connect: { id: promotionId } }
+                }))
+            };
+        }
+
+        const updatedTransaction = await prisma.transaction.update({
+            where: { id: parseInt(transactionId) },
+            data: updateData,
+            select: {
+                id: true,
+                utorid: true,
+                type: true,
+                spent: true,
+                amount: true,
+                earned: true,
+                promotions: { select: { promotionId: true } },
+                suspicious: true,
+                remark: true,
+                createdBy: { select: { utorid: true } },
+                relatedId: true,
+                redeemed: true,
+            }
+        });
+
+        const results = { ...updatedTransaction };
+        results.promotionIds = results.promotions.map(p => p.promotionId);
+        delete results.promotions;
+        results.createdBy = results.createdBy.utorid;
+
+        if (results.type === 'purchase') {
+            delete results.relatedId;
+            delete results.redeemed;
+        }
+        if ((results.type === 'adjustment') || (results.type === 'event') || (results.type === 'transfer')) {
+            delete results.redeemed;
+        }
+        if (results.type === 'event') {
+            results.eventId = results.relatedId;
+        }
+
+        return res.status(200).json(results);
+    }
+    
     if (req.method !== "GET") {
         return res.status(405).send({error: "Method Not Allowed"});
     }
@@ -606,6 +761,7 @@ router.all("/:transactionId", clearanceRequired('manager'), async (req, res) => 
             type: true,
             spent: true,
             amount: true,
+            earned: true,
             promotions: { select: { promotionId: true } },
             suspicious: true, 
             remark: true,
@@ -814,18 +970,6 @@ router.all("/:transactionId/processed", clearanceRequired('cashier'), async (req
         }
     })
 
-    let new_points = user.points - transaction.amount
-
-    // update the user's point balance, after redemption
-    await prisma.user.update({
-        where: {
-            utorid: transaction.utorid,
-        },
-        data: {
-            points: new_points,
-        }
-    })
-    
     results = await prisma.transaction.findUnique({
         where : { id: parseInt(transactionId) },
         select: {

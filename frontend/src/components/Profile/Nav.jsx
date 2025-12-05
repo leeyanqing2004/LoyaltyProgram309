@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
 import styles from "./Nav.module.css";
 
-function Nav({ id }) {
+function Nav({ id, onToggleNav, navOpen = true, className = "" }) {
     const { user } = useAuth();
     const { viewRole, setViewRole } = useViewRole();
     const location = useLocation();
@@ -12,13 +12,17 @@ function Nav({ id }) {
     const isManagerOrHigher = user?.role === "manager" || user?.role === "superuser";
     const isViewRoleManagerOrHigher = viewRole === "manager" || viewRole === "superuser";
     const eventsPath = isViewRoleManagerOrHigher ? "/all-events" : "/published-events";
+    const promotionsPath = isViewRoleManagerOrHigher ? "/all-promotions" : "/available-promotions";
 
     const isEvents = path.startsWith("/published-events") || path.startsWith("/all-events");
-    const profilePath = user ? "/profile" : "/login";
-    const isProfile = path.startsWith("/profile") || path === "/home";
+    const profilePath = user ? `/profile` : "/login";
+    const dashboardPath = user ? `/dashboard` : "/login";
+    const isDashboard = path === "/dashboard";
+    const isProfile = path.startsWith("/profile");
     const isAllUsers = path.startsWith("/all-users");
     const isAllTransactions = path.startsWith("/all-transactions");
-    const isAllPromotions = path.startsWith("/all-promotions");
+    const isPromotions = path.startsWith("/all-promotions") || path.startsWith("/available-promotions");
+    const navClassNames = `${styles.nav} ${className}`.trim();
 
     const handleViewRoleChange = (event) => {
         const role = event.target.value;
@@ -30,11 +34,30 @@ function Nav({ id }) {
     };
 
     return (
-        <nav id={id} className={styles.nav}>
+        <nav id={id} className={navClassNames}>
             <div className={styles.navListContainer}>
+                {onToggleNav && (
+                    <button
+                        type="button"
+                        className={styles.navToggle}
+                        aria-label={`${navOpen ? "Collapse" : "Expand"} sidebar`}
+                        aria-expanded={navOpen}
+                        onClick={onToggleNav}
+                    >
+                        <span className={styles.navToggleIcon} />
+                    </button>
+                )}
                 <ul className={styles.navList}>
                     <li className={styles.navListItem}>
+                        <Link className={`${styles.navListItemLink} ${isDashboard ? styles.active : ""}`} to={dashboardPath}>Dashboard</Link>
+                    </li>
+
+                    <li className={styles.navListItem}>
                         <Link className={`${styles.navListItemLink} ${isEvents ? styles.active : ""}`} to={eventsPath}>Events</Link>
+                    </li>
+
+                    <li className={styles.navListItem}>
+                        <Link className={`${styles.navListItemLink} ${isPromotions ? styles.active : ""}`} to={promotionsPath}>Promotions</Link>
                     </li>
                     {isViewRoleManagerOrHigher && (
                         <li className={styles.navListItem}>
@@ -49,10 +72,10 @@ function Nav({ id }) {
                     <li className={styles.navListItem}>
                         <Link className={`${styles.navListItemLink} ${isProfile ? styles.active : ""}`} to={profilePath}>Profile</Link>
                     </li>
-                    <li className={styles.navListItem}>
-                        <Link className={`${styles.navListItemLink} ${isAllPromotions ? styles.active : ""}`} to="/all-promotions">Promotions</Link>
-                    </li>
                 </ul>
+                <div className={`${styles.navListItem} ${styles.navLogo}`} >
+                    <img src="/logo.svg" className={styles.logoImg} />
+                </div>
                 {isManagerOrHigher && (
                     <Box className={styles.navViewRoleSelector}>
                         <FormControl size="small">
