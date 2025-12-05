@@ -12,7 +12,7 @@ const port = process.env.PORT || 3000;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 const corsOptions = {
-    origin: [FRONTEND_URL, "http://localhost:5173", "http://127.0.0.1:5173", "https://sterling-rouge.vercel.app"],
+    origin: [FRONTEND_URL, "http://localhost:5173", "http://127.0.0.1:5173", "https://sterling-t15s-qndqbu74w-yan-qings-projects-a6b41850.vercel.app"],
     optionsSuccessStatus: 200
 };
 
