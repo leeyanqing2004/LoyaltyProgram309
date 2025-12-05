@@ -5,8 +5,9 @@ import {
     InputLabel, Select, MenuItem, Box, Pagination
 } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
-import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
+import { useViewRole } from "../../contexts/ViewRoleContext";
+import api from "../../api/api";
 import styles from "./EventsTable.module.css";
 import { formatDateTime } from "../../utils/formatDateTime";
 import "../Popups/DetailsPopup.css";
@@ -14,9 +15,10 @@ import EventDetailsPopup from "../Popups/EventDetailsPopup";;
   
 export default function EventsTable({ eventsTableTitle, managerViewBool, showRegisteredOnly = false }) {
     const { user } = useAuth();
+    const { viewRole } = useViewRole();
     const navigate = useNavigate();
     const location = useLocation();
-    const isManagerOrSuperuser = user?.role === "manager" || user?.role === "superuser";
+    const isManagerOrSuperuser = viewRole === "manager" || viewRole === "superuser";
     const [rows, setRows] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
     const [page, setPage] = useState(0);
@@ -267,6 +269,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
         }
     });
   
+    const displayRegistered = (!showRegisteredOnly || !loading);
     return (
         <div className={styles.eventsTableContainer}>
             <div className={styles.eventsTableTitle}>{eventsTableTitle}</div>
@@ -332,7 +335,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                             </TableCell>
                         </TableRow>
                     ) : (
-                        processedRows
+                        displayRegistered && processedRows
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                             .map((row) => (
                             <TableRow key={row.id}>

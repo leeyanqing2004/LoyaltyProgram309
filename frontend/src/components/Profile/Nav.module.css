@@ -1,5 +1,6 @@
 .nav {
     display: flex;
+    justify-content: center;
     align-items: center;
     gap: 12px;
     padding: 12px 20px;
@@ -63,6 +64,14 @@
     transform: translateY(-6px) rotate(-45deg);
 }
 
+.navListContainer {
+    /* Layout */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0px 20px;
+}
+
 .navList {
     margin: 0px;
     display: flex;
@@ -97,4 +106,9 @@
     display: block;
     height: 36px;
     width: auto;
+}
+
+.navViewRoleSelector {
+    padding-top: 10px;
+    padding-bottom: 10px;
 }

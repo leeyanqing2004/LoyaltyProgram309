@@ -56,27 +56,31 @@ export default function RedemptionTable({ redempTableTitle, processedBool }) {
     };
 
     const processedRows = rows
-        // FILTER
-        .filter((row) =>
-            row.utorid.toLowerCase().includes(filter.toLowerCase())
-        )
-        // SORT
-        .sort((a, b) => {
-            if (!sortBy) {
-                return 0;
-            } else if (sortBy === "id") {
-                return a.id - b.id;
-            } else if (sortBy === "earned") {
-                return a.earned - b.earned;
-            } else if (sortBy === "spent") {
-                return a.spent - b.spent;
-            } else if (sortBy === "utorid") {
-                return a.utorid.localeCompare(b.utorid);
-            } else {
-                return 0;
-            }
-        });
-
+    // FILTER
+    .filter((row) => {
+        if (row.utorid) {
+            return row.utorid.toLowerCase().includes(filter.toLowerCase());
+        } else {
+            return false;
+        }
+    })
+    // SORT
+    .sort((a, b) => {
+        if (!sortBy) {
+            return 0;
+        } else if (sortBy === "id") {
+            return a.id - b.id;
+        } else if (sortBy === "earned") {
+            return a.earned - b.earned;
+        } else if (sortBy === "spent") {
+            return a.spent - b.spent;
+        } else if (sortBy === "utorid") {
+            return a.utorid.localeCompare(b.utorid);
+        } else {
+            return 0;
+        }
+    });
+  
     return (
         <div className={styles.redempTableContainer}>
             <div className={styles.redempTableTitle}>{redempTableTitle}</div>

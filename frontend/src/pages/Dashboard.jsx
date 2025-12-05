@@ -1,17 +1,18 @@
 import { AvailablePointsDisplay, StartTransactionQR } from "../components/Dashboard/DashboardTopSection";
-import styles from "./Dashboard.module.css";
-import TransactionTable from "../components/Tables/TransactionTable";
 import { getRecentTransactions } from "../api/getTransactionsApi";
 import { getMyPoints } from "../api/pointsAndQrApi.js";
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useViewRole } from "../contexts/ViewRoleContext";
+import { getPromotions } from "../api/getPromotionsApi";
+import { createPurchase } from "../api/getTransactionsApi";
 import TransferPointsPopup from "../components/TransferPoints";
-import RedeemPointsPopup from "../components/RedeemPointsPopup";
+import styles from "./Dashboard.module.css";
+import TransactionTable from "../components/Tables/TransactionTable";
+import RedeemPointsPopup from "../components/Popups/RedeemPointsPopup";
 import PanelActionButton from "../components/Buttons/PanelActionButton";
 import RegisterUserPopup from "../components/Popups/RegisterUserPopup";
 import NewPurchasePopup from "../components/Popups/NewPurchasePopup";
-import { getPromotions } from "../api/getPromotionsApi";
-import { createPurchase } from "../api/getTransactionsApi";
 import DetailsPopup from "../components/Popups/DetailsPopup";
 
 // TODO: should we move the Nav and LeftNav components out of the Profile folder, since we'll use it
@@ -20,7 +21,8 @@ import DetailsPopup from "../components/Popups/DetailsPopup";
 function Dashboard() {
     //  const user = "cashier"
     const { user } = useAuth();
-    const isCashierOrHigher = ["cashier", "manager", "superuser"].includes(user?.role);
+    const { viewRole } = useViewRole();
+    const isCashierOrHigher = viewRole === "cashier" || viewRole === "manager" || viewRole === "superuser";
 
     const [recentTransactions, setRecentTransactions] = useState([]);
     const [count, setCount] = useState(0);

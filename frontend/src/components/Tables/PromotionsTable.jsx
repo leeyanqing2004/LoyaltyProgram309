@@ -144,42 +144,48 @@ export default function PromotionsTable({
                 />
 
                 {/* Sort Dropdown */}
-                <FormControl size="small">
-                    <InputLabel>Sort By</InputLabel>
-                    <Select
-                        value={sortBy}
-                        label="Sort By"
-                        onChange={(e) => setSortBy(e.target.value)}
-                        style={{ minWidth: 150 }}
-                    >
-                        <MenuItem value="">None</MenuItem>
-                        <MenuItem value="id">ID</MenuItem>
-                        <MenuItem value="minSpending">Minimum Spending</MenuItem>
-                        <MenuItem value="rate">Rate</MenuItem>
-                        <MenuItem value="points">Points</MenuItem>
-                    </Select>
-                </FormControl>
+                <div className={styles.promoTableSorting}>
+                    <FormControl size="small">
+                        <InputLabel>Sort By</InputLabel>
+                        <Select
+                            value={sortBy}
+                            label="Sort By"
+                            onChange={(e) => setSortBy(e.target.value)}
+                            style={{ minWidth: 150 }}
+                        >
+                            <MenuItem value="">None</MenuItem>
+                            <MenuItem value="id">ID</MenuItem>
+                            <MenuItem value="minSpending">Minimum Spending</MenuItem>
+                            <MenuItem value="rate">Rate</MenuItem>
+                            <MenuItem value="points">Points</MenuItem>
+                        </Select>
+                    </FormControl>
+                </div>
 
-                <FormControl size="small">
-                    <InputLabel>Type</InputLabel>
-                    <Select
-                        value={promotionTypeFilter}
-                        label="Promotion Type"
-                        onChange={(e) => setPromotionTypeFilter(e.target.value)}
-                        style={{ minWidth: 150 }}
-                    >
-                        <MenuItem value="">All</MenuItem>
-                        <MenuItem value="one-time">One-Time</MenuItem>
-                        <MenuItem value="automatic">Automatic</MenuItem>
-                    </Select>
-                </FormControl>
+                <div className={styles.promoTableTypeFilter}>
+                    <FormControl size="small">
+                        <InputLabel>Type</InputLabel>
+                        <Select
+                            value={promotionTypeFilter}
+                            label="Promotion Type"
+                            onChange={(e) => setPromotionTypeFilter(e.target.value)}
+                            style={{ minWidth: 150 }}
+                        >
+                            <MenuItem value="">All</MenuItem>
+                            <MenuItem value="one-time">One-Time</MenuItem>
+                            <MenuItem value="automatic">Automatic</MenuItem>
+                        </Select>
+                    </FormControl>
+                </div>
 
                 {!availableOnlyBool && <FormControlLabel // availableOnlyBool is False if it's a Manager. In this case, allow them to see this filter option.
                     control={
-                        <Checkbox
-                            checked={showAvailableOnly}
-                            onChange={(e) => setShowAvailableOnly(e.target.checked)}
-                        />
+                        <div className={styles.promoTableAvailableOnlyCheckbox}>
+                            <Checkbox
+                                checked={showAvailableOnly}
+                                onChange={(e) => setShowAvailableOnly(e.target.checked)}
+                            />
+                        </div>
                     }
                     label="Show Available Promotions Only"
                 />}
