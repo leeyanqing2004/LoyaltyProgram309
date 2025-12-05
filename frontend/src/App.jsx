@@ -16,6 +16,7 @@ import AvailablePromotions from './pages/AvailablePromotions';
 import AllPromotions from './pages/AllPromotions';
 import AllUsers from './pages/AllUsers';
 import ManageEvent from './pages/ManageEvent';
+import OrganizerManageEvent from "./pages/OrganizerManageEvent";
 import ProfileShell from "./components/Profile/ProfileShell.jsx";
 import MyEvents from "./pages/MyEvents.jsx";
 import UserSearch from './pages/UserSearch';
@@ -45,6 +46,7 @@ function App() {
             <Route path="/available-promotions" element={<AvailablePromotions />} />
             <Route path="/all-events" element={<AllEvents />} />
             <Route path="/manage-event/:eventId" element={<ManageEvent />} />
+            <Route path="/organizer-manage-event/:id" element={<OrganizerManageEvent />} />
             <Route path="/published-events" element={<PublishedEvents />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/redeem-points" element={<RedeemPoints />} />
