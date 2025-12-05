@@ -1,7 +1,7 @@
 import { useState } from "react";
 import DetailsPopup from "./DetailsPopup";
 import PopupFormField from "./PopupFormField";
-import PrimaryButtonComponent from "../Buttons/PrimaryButtonComponent";
+// Use the shared popup action button styling (action-btn)
 
 export default function NewPurchasePopup({ initialUtorid = "", promotionsOptions = [], onSubmit, onClose }) {
   const [utorid, setUtorid] = useState(initialUtorid);
@@ -70,9 +70,9 @@ export default function NewPurchasePopup({ initialUtorid = "", promotionsOptions
 
         {error && <div className="popup-error">{error}</div>}
 
-        <PrimaryButtonComponent onClick={handleSubmit}>
+        <button className="action-btn" onClick={handleSubmit}>
           Create Purchase
-        </PrimaryButtonComponent>
+        </button>
       </div>
     </DetailsPopup>
   );

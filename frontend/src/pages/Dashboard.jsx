@@ -20,7 +20,7 @@ import DetailsPopup from "../components/Popups/DetailsPopup";
 function Dashboard() {
     //  const user = "cashier"
     const { user } = useAuth();
-    const isCashier = user?.role === "cashier";
+    const isCashierOrHigher = ["cashier", "manager", "superuser"].includes(user?.role);
 
     const [recentTransactions, setRecentTransactions] = useState([]);
     const [count, setCount] = useState(0);
@@ -73,7 +73,7 @@ function Dashboard() {
                         <StartTransactionQR qrCodeInfo={"QR CODE INFO HERE"} />
                     </div>
 
-                    {isCashier && (
+                    {isCashierOrHigher && (
                         <div className={styles.cashierButtonContainer}>
                             <div className={styles.cashierButton}>
                                 <PanelActionButton
@@ -105,7 +105,7 @@ function Dashboard() {
                 {showTransfer && <TransferPointsPopup onClose={() => setShowTransfer(false)} />}
                 {showRedeem && <RedeemPointsPopup show={showRedeem} setShow={setShowRedeem} />}
             </div>
-            {isCashier && (
+            {isCashierOrHigher && (
                 <RegisterUserPopup
                     open={showRegisterPopup}
                     onClose={() => setShowRegisterPopup(false)}
@@ -115,7 +115,7 @@ function Dashboard() {
                     }}
                 />
             )}
-            {isCashier && showPurchasePopup && (
+            {isCashierOrHigher && showPurchasePopup && (
                 <NewPurchasePopup
                     initialUtorid=""
                     promotionsOptions={promotionsOptions}
@@ -126,7 +126,7 @@ function Dashboard() {
                     onClose={() => setShowPurchasePopup(false)}
                 />
             )}
-            {registeredUser && (
+            {isCashierOrHigher && registeredUser && (
                 <DetailsPopup
                     open={true}
                     onClose={() => setRegisteredUser(null)}

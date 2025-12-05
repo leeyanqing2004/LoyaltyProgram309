@@ -118,16 +118,22 @@ export default function UserSearchTable() {
                                     </TableCell>
                                     <TableCell>n/a</TableCell>
                                     <TableCell>
-                                        <PanelActionButton
-                                            label="Process Redemption"
+                                        <button
+                                            className={styles.actionBtn}
                                             onClick={() => setShowRedemption(true)}
-                                        />
+                                            title={`Redeem points for ${row.name} (${row.utorid})`}
+                                        >
+                                            {`Redeem for ${row.utorid}`}
+                                        </button>
                                     </TableCell>
                                     <TableCell>
-                                        <PanelActionButton
-                                            label="Create Purchase"
+                                        <button
+                                            className={styles.actionBtn}
                                             onClick={() => setPurchaseForUtorid(row.utorid)}
-                                        />
+                                            title={`Create purchase for ${row.name} (${row.utorid})`}
+                                        >
+                                            {`Purchase for ${row.utorid}`}
+                                        </button>
                                     </TableCell>
                                 </TableRow>
                             ))}
