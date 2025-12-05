@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, Paper, TablePagination, TextField, FormControl,
-    InputLabel, Select, MenuItem, Box
+    InputLabel, Select, MenuItem, Box, Pagination
 } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/api";
@@ -33,6 +33,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
     const [loadingRsvp, setLoadingRsvp] = useState({});
     const [toast, setToast] = useState(null);
     const [organizerEvents, setOrganizerEvents] = useState({});
+    const [guestStatusChecked, setGuestStatusChecked] = useState(false);
     const [loading, setLoading] = useState(false);
 
     // Check for success message from navigation state
@@ -121,11 +122,12 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
 
     useEffect(() => {
         const fetchEvents = async () => {
+            setLoading(true);
             try {
                 const params = {
-                    page: showRegisteredOnly ? 1 : page + 1,
-                    limit: showRegisteredOnly ? 1000 : rowsPerPage
-                }
+                    page: page + 1,
+                    limit: rowsPerPage,
+                };
 
                 if (filter) {
                     params.name = filter;
@@ -154,6 +156,8 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                 setRows([]);
                 setTotalCount(0);
                 setRsvpedEventIds(new Set());
+            } finally {
+                setLoading(false);
             }
         };
         fetchEvents();
@@ -290,7 +294,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                         <MenuItem value="id">ID</MenuItem>
                         <MenuItem value="earned">Points Earned</MenuItem>
                         <MenuItem value="spent">Points Spent</MenuItem>
-                        <MenuItem value="utorid">UTORid</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
@@ -311,11 +314,11 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                         {managerViewBool && <TableCell>Published</TableCell>}
                         <TableCell></TableCell>
                         <TableCell></TableCell>
-                    </TableRow>
-                    </TableHead>
+                        </TableRow>
+                        </TableHead>
         
-                    <TableBody>
-                    {(!showRegisteredOnly || !loading) && processedRows
+                        <TableBody>
+                    {processedRows
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row) => (
                         <TableRow key={row.id}>
@@ -364,6 +367,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                                                 const isFull = row.capacity !== null && row.numGuests >= row.capacity;
                                                 const isOrganizerForEvent = Boolean(organizerEvents[row.id]);
                                                 const canRsvp = !isEnded && (!isFull || isRsvped) && !isOrganizerForEvent;
+                                                const shouldShowUnRsvp = isRsvped;
 
                                                 let disabledReason = "";
                                                 if (isEnded) {
@@ -401,20 +405,85 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                                             })()}
                                         </TableCell>
 
-                                    </TableRow>
-                                ))}
-                        </TableBody>
-                    </Table>
-                    
+                                    if (!guestStatusChecked && !isOrganizerForEvent) {
+                                        return (
+                                            <button
+                                                className={styles.rsvpBtnSecondary}
+                                                disabled
+                                            >
+                                                Loading...
+                                            </button>
+                                        );
+                                    }
+
+                                    return (
+                                        <button
+                                            className={
+                                                shouldShowUnRsvp
+                                                    ? styles.rsvpBtnSecondary
+                                                    : styles.rsvpBtn
+                                            }
+                                            onClick={() => handleRsvp(row)}
+                                            disabled={isLoading || (!shouldShowUnRsvp && !canRsvp)}
+                                            title={disabledReason || (shouldShowUnRsvp ? "Click to un-RSVP" : "Click to RSVP")}
+                                        >
+                                            {isLoading
+                                                ? "Loading..."
+                                                : isOrganizerForEvent
+                                                ? "Organizer"
+                                                : shouldShowUnRsvp
+                                                ? "Un-RSVP"
+                                                : isEnded
+                                                ? "Event Ended"
+                                                : isFull && !isRsvped
+                                                ? "Event Full"
+                                                : "RSVP"}
+                                        </button>
+                                    );
+                                })()}
+                            </TableCell>
+                            
+                        </TableRow>
+                        ))}
+                    {loading && (
+                        <TableRow>
+                            <TableCell colSpan={managerViewBool ? 11 : 9}>
+                                <div className={styles.tableLoading}>
+                                    <div className={styles.spinner} />
+                                    <span>Loading events...</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    )}
+                    </TableBody>
+                </Table>
                 </TableContainer>
-                <TablePagination
-                component="div"
-                count={showRegisteredOnly ? processedRows.length : totalCount}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                />
+        
+                <Box className={styles.tablePaginationBar}>
+                    <Pagination
+                        count={Math.max(1, Math.ceil(totalCount / rowsPerPage))}
+                        page={page + 1}
+                        onChange={(_, val) => handleChangePage(null, val - 1)}
+                        siblingCount={1}
+                        boundaryCount={1}
+                        disabled={false}
+                        className={styles.pagination}
+                        classes={{ ul: styles.paginationList }}
+                    />
+                    <FormControl size="small" sx={{ minWidth: 120 }} className={styles.rowsSelect}>
+                        <InputLabel id="events-rows-label">Rows</InputLabel>
+                        <Select
+                            labelId="events-rows-label"
+                            value={rowsPerPage}
+                            label="Rows"
+                            onChange={handleChangeRowsPerPage}
+                        >
+                            {[5, 10, 25, 50].map(opt => (
+                                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Box>
             </Paper>
             {toast && (
                 <div

@@ -355,7 +355,7 @@ router.all("/", async (req, res) => {
                 const newAmount = relatedTransaction.amount + amount;
                 const newEarned = relatedTransaction.earned + amount;
                 if (!relatedTransaction.suspicious && recipientId) {
-                    pointDelta = amount;
+                    pointDelta = -amount;
                 }
                 await prisma.transaction.update({
                     where: { id: parseInt(relatedId) },
@@ -387,6 +387,10 @@ router.all("/", async (req, res) => {
                             : undefined
                     }
                 });
+            } else if (relatedTransaction.type === 'redemption') {
+                pointDelta = -amount;
+            } else if (relatedTransaction.type === 'transfer') {
+                pointDelta = -amount;
             } else { // TODO: IMPLEMENT FOR TRANSFER & REDEMPTION
                 await prisma.transaction.update({
                     where: { id: parseInt(relatedId) },
@@ -404,6 +408,9 @@ router.all("/", async (req, res) => {
 
             // apply point delta after transaction adjustment
             if (recipientId && pointDelta !== 0) {
+                if (recipientPoints + pointDelta < 0) {
+                    return res.status(400).json({ error: "Resulting points would be negative; adjustment denied" });
+                }
                 await prisma.user.update({
                     where: { id: recipientId },
                     data: {
