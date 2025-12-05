@@ -378,7 +378,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                                                 : isEnded
                                                 ? "Event Ended"
                                                 : isFull && !isRsvped
-                                                ? "RSVP"
+                                                ? "Event Full"
                                                 : "RSVP"}
                                         </button>
                                     );

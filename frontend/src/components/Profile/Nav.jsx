@@ -11,6 +11,8 @@ function Nav({ id, onToggleNav, navOpen = true, className = "" }) {
 
     const isEvents = path.startsWith("/published-events") || path.startsWith("/all-events");
     const profilePath = user ? `/profile/${user.utorid}/account` : "/login";
+    const dashboardPath = user ? `/home` : "/login";
+    const isDashboard = path === "/home";
     const isProfile = path.startsWith("/profile/") || path === "/home";
     const isAllUsers = path.startsWith("/all-users");
     const isAllTransactions = path.startsWith("/all-transactions");
@@ -30,6 +32,10 @@ function Nav({ id, onToggleNav, navOpen = true, className = "" }) {
                 </button>
             )}
             <ul className={styles.navList}>
+                <li className={styles.navListItem}>
+                    <Link className={`${styles.navListItemLink} ${isDashboard ? styles.active : ""}`} to={dashboardPath}>Dashboard</Link>
+                </li>
+
                 <li className={styles.navListItem}>
                     <Link className={`${styles.navListItemLink} ${isEvents ? styles.active : ""}`} to={eventsPath}>Events</Link>
                 </li>

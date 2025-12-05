@@ -618,43 +618,7 @@ router.all('/:userId', (req, res) => {
 });
 
 async function computeUserPointsForUser(user) {
-    const transactions = await prisma.transaction.findMany({
-        where: { utorid: user.utorid },
-        select: {
-            type: true,
-            amount: true,
-            suspicious: true,
-            processed: true,
-            senderId: true,
-            recipientId: true
-        }
-    });
-
-    let total = 0;
-
-    for (const t of transactions) {
-        if (t.suspicious) continue;
-        if (t.type === "purchase" || t.type === "event") {
-            total += t.amount;
-            continue;
-        }
-        if (t.type === "transfer") {
-            if (t.senderId === user.id) {
-                total -= t.amount;
-            } else if (t.recipientId === user.id) {
-                total += t.amount;
-            }
-            continue;
-        }
-        if (t.type === "redemption") {
-            if (t.processed) {
-                total -= t.amount;
-            }
-            continue;
-        }
-    }
-
-    return total;
+    return user?.points ?? 0;
 }
 
 // helper function to check the types of values in payload
@@ -698,11 +662,11 @@ router.all("/me/transactions", clearanceRequired('regular'), async (req, res) =>
         if (amount <= 0 || !Number.isInteger(amount)) {
             return res.status(400).json({ error: "Redemption amount must be positive integer" });
         }
-        if (amount > user.points) {
-            return res.status(400).json({ error: "Redemption amount exceeds point balance." });
-        }
-        if (!user.verified) {
-            return res.status(403).json({ error: "Forbidden: user is not verified" });
+      if (amount > user.points) {
+          return res.status(400).json({ error: "Redemption amount exceeds point balance." });
+      }
+      if (!user.verified) {
+          return res.status(403).json({ error: "Forbidden: user is not verified" });
         }
 
         const newRedemption = await prisma.transaction.create({
@@ -722,13 +686,18 @@ router.all("/me/transactions", clearanceRequired('regular'), async (req, res) =>
                     select: { utorid: true }
                 }
             }
-        })
+          })
+  
+          await prisma.user.update({
+              where: { id: user.id },
+              data: { points: user.points - amount }
+          });
 
-        return res.status(201).json({
-            id: newRedemption.id,
-            utorid: newRedemption.utorid,
-            type: newRedemption.type,
-            processedBy: null,
+          return res.status(201).json({
+              id: newRedemption.id,
+              utorid: newRedemption.utorid,
+              type: newRedemption.type,
+              processedBy: null,
             amount: newRedemption.amount,
             remark: newRedemption.remark,
             createdBy: newRedemption.createdBy.utorid

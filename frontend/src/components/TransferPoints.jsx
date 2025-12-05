@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/api";
-import styles from "./TransferPoints.module.css";
+import "./TransferPoints.css";
 
 function TransferPointsPopup({ onClose }) {
     const [recipient, setRecipient] = useState("");
@@ -69,78 +69,75 @@ function TransferPointsPopup({ onClose }) {
         setSuccess("");
     };
 
-    return <div className={styles.transferPointsPopupRedemptionPopup} onClick={onClose}>
-        <div className={styles.transferPointsPopupContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.transferPointsPopupCloseButton} onClick={onClose}>X</button>
-            <h2 className={styles.transferPointsPopupTitle}>Transfer Points</h2>
+    return <div className="transfer-points-redemption-popup" onClick={onClose}>
+        <div className="transfer-points-content" onClick={(e) => e.stopPropagation()}>
+            <button className="transfer-points-close-button" onClick={onClose}>X</button>
+            <h2 className="transfer-points-title">Transfer Points</h2>
             {!success && (
                 <>
-                    <div className={styles.transferPointsPopupField}>
+                    <div className="transfer-points-recipient">
                         <label 
-                            className={styles.transferPointsRecipientPopupLabel} 
-                            htmlFor="transferPointsRecipientLabel"
+                            className="transfer-points-recipient-label" 
+                            htmlFor="transfer-points-recipient-input"
                         >
                             Recipient (UTORid)</label>
                         <input 
-                            id="transferPointsPopupRecipientInput"
+                            id="transfer-points-recipient-input"
                             type="text"
-                            name="transferPointsPopupRecipientInput"
+                            name="transfer-points-recipient-input"
                             placeholder="e.g. kabirsh7"
                             value={recipient}
                             onChange={(e) => setRecipient(e.target.value)}
-                            className={styles.transferPointsPopupInput}
                         />
                     </div>
-                    <div className={styles.transferPointsPopupField}>
+                    <div className="transfer-points-amount-of-points">
                         <label 
-                            className={styles.transferPointsPopupAmountOfPointsLabel} 
-                            htmlFor="transferPointsPopupAmountOfPointsInput"
+                            className="transfer-points-amount-of-points-label" 
+                            htmlFor="transfer-points-amount-of-points-input"
                         >
                             Amount of Points</label>
                         <input 
-                            id="transferPointsPopupAmountOfPointsInput"
+                            id="transfer-points-amount-of-points-input"
                             type="number"
-                            name="transferPointsPopupAmountOfPointsInput"
+                            name="transfer-points-amount-of-points-input"
                             placeholder="e.g. 1000"
                             min="1"
                             step="1"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            className={styles.transferPointsPopupInput}
                         />
                     </div>
-                    <div className={styles.transferPointsPopupRemarksField}>
+                    <div className="transfer-points-remarks">
                         <label 
-                            className={styles.transferPointsPopupRemarksLabel} 
-                            htmlFor="transferPointsPopupRemarksInput"
+                            className="transfer-points-remarks-label" 
+                            htmlFor="transfer-points-remarks-input"
                         >
                             Remarks
                         </label>
                         <textarea 
-                            id="transferPointsPopupRemarksInput"
-                            name="transferPointsPopupRemarksInput"
+                            id="transfer-points-remarks-input"
+                            name="transfer-points-remarks-input"
                             placeholder="Enter any remarks here..."
                             rows="4"
                             value={remark}
                             onChange={(e) => setRemark(e.target.value)}
-                            className={styles.transferPointsPopupTextarea}
                         />
                     </div>
                 </>
             )}
 
-            <div className={styles.transferPointsPopupMessage}>
+            <div className="transfer-points-message">
                 {!error && success && (
-                    <div className={styles.transferPointsPopupSuccessActions}>
-                        <button className={`${styles.transferPointsPopupSubmitButton} ${styles.secondary}`} onClick={onClose}>Close</button>
-                        <button className={styles.transferPointsPopupSubmitButton} onClick={handleReset}>Make another transfer</button>
+                    <div className="transfer-points-success-actions">
+                        <button className="transfer-points-submit-button secondary" onClick={onClose}>Close</button>
+                        <button className="transfer-points-submit-button" onClick={handleReset}>Make another transfer</button>
                     </div>
                 )}
             </div>
 
             {!success && (
                 <button 
-                    className={`${styles.transferPointsPopupSubmitButton} ${submitting ? styles.loading : ""}`}
+                    className={`transfer-points-submit-button ${submitting ? "loading" : ""}`}
                     onClick={handleSubmit}
                     disabled={submitting}
                 >
@@ -149,7 +146,7 @@ function TransferPointsPopup({ onClose }) {
             )}
         </div>
         {toast && (
-            <div className={`${styles.transferPointsToastPopup} ${toast.type === "error" ? styles.transferPointsToastError : styles.transferPointsToastSuccess}`}>
+            <div className={`transfer-points-toast-popup ${toast.type}`}>
                 {toast.message}
             </div>
         )}

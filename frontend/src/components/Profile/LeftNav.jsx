@@ -31,18 +31,12 @@ function LeftMiddle({ endpoint }) {
     if (!user) {
         return null;
     }
-    const isHomeActive = matchPath({ path: "/profile/:utorid/home" }, endpoint) || matchPath({ path: "/home" }, endpoint);
-    const homeTab = <div className="left-nav-home-tab">
-        <PageButton text="Home" active={isHomeActive} path="/home"/>
-    </div>;
-
     const isPastTransactionsActive = matchPath({ path: "/past-transactions" }, endpoint);
     const pastTransactionsTab = <div className="left-nav-past-transactions-tab">
         <PageButton text="Past Transactions" active={isPastTransactionsActive} path={`/past-transactions`}/>
     </div>;
 
     return <div className={styles.leftNavLeftMiddle}>
-        {homeTab}
         {pastTransactionsTab}
     </div>;
 }

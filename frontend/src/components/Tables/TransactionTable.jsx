@@ -188,55 +188,56 @@ export default function TransactionTable({
                         </TableHead>
             
                         <TableBody>
-                        {processedRows
-                            .slice(
-                                serverPaging ? 0 : page * rowsPerPage,
-                                serverPaging ? undefined : page * rowsPerPage + rowsPerPage
-                            )
-                            .map((row) => (
-                            <TableRow key={row.id}>
-                                <TableCell>{row.id}</TableCell>
-                                {includeManageButton && <TableCell>{row.utorid}</TableCell>}
-                                <TableCell>{capitalize(row.type)}</TableCell>
-                                <TableCell>{row.amount}</TableCell>
-                                <TableCell>{row.remark}</TableCell>
-                                <TableCell>{row.promotionIds}</TableCell>
-                                <TableCell>{row.createdBy}</TableCell>
-                                {/* <TableCell>Additional Info Here</TableCell> */}
-                                <TableCell>
-                                    {Object.entries(row)
-                                        .filter(
-                                            ([key]) =>
-                                                !["id", "utorid", "earned", "remark", "promotionIds", "createdBy", "amount", "type"].includes(key)
-                                        )
-                                        .map(([key, value]) => (
-                                            <div key={key}>
-                                                <strong>{capitalize(key)}:</strong> {value?.toString()}
-                                            </div>
-                                        ))}
-                                </TableCell>
-                                <TableCell>
-                                    {includeManageButton ? (
-                                        <button
-                                            className={styles.manageBtn}
-                                            onClick={() => setActiveTransaction(row)}
-                                        >
-                                            Manage Transaction
-                                        </button>
-                                    ) : null}
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={includeManageButton ? 9 : 8}>
+                                    <div className={styles.tableLoading}>
+                                        <div className={styles.spinner} />
+                                        <span>Loading transactions...</span>
+                                    </div>
                                 </TableCell>
                             </TableRow>
-                        ))}
-                    {loading && (
-                        <TableRow>
-                            <TableCell colSpan={includeManageButton ? 9 : 8}>
-                                <div className={styles.tableLoading}>
-                                    <div className={styles.spinner} />
-                                    <span>Loading transactions...</span>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    )}
+                        ) : (
+                            processedRows
+                                .slice(
+                                    serverPaging ? 0 : page * rowsPerPage,
+                                    serverPaging ? undefined : page * rowsPerPage + rowsPerPage
+                                )
+                                .map((row) => (
+                                    <TableRow key={row.id}>
+                                        <TableCell>{row.id}</TableCell>
+                                        {includeManageButton && <TableCell>{row.utorid}</TableCell>}
+                                        <TableCell>{capitalize(row.type)}</TableCell>
+                                        <TableCell>{row.amount}</TableCell>
+                                        <TableCell>{row.remark}</TableCell>
+                                        <TableCell>{row.promotionIds}</TableCell>
+                                        <TableCell>{row.createdBy}</TableCell>
+                                        {/* <TableCell>Additional Info Here</TableCell> */}
+                                        <TableCell>
+                                            {Object.entries(row)
+                                                .filter(
+                                                    ([key]) =>
+                                                        !["id", "utorid", "earned", "remark", "promotionIds", "createdBy", "amount", "type"].includes(key)
+                                                )
+                                                .map(([key, value]) => (
+                                                    <div key={key}>
+                                                        <strong>{capitalize(key)}:</strong> {value?.toString()}
+                                                    </div>
+                                                ))}
+                                        </TableCell>
+                                        <TableCell>
+                                            {includeManageButton ? (
+                                                <button
+                                                    className={styles.manageBtn}
+                                                    onClick={() => setActiveTransaction(row)}
+                                                >
+                                                    Manage Transaction
+                                                </button>
+                                            ) : null}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                        )}
                     </TableBody>
                 </Table>
                 </TableContainer>
