@@ -158,6 +158,7 @@ export default function InputFields({ pageType, setPageType }){
                         <OneInputComponent inputName="Email" inputType="email" required={true} onChange={(e) => setInputEmail(e.target.value)}/>
                         {error && Error(error)}
                         <PrimaryButtonComponent type="submit">Create Account</PrimaryButtonComponent>
+                        <p>Already have an account?{" "} <a href="#" onClick={() => setPageType("defaultLogin")}>Login</a></p>
                     </form>
                 </>
             );
