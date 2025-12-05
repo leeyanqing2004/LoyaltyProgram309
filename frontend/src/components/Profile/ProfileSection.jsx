@@ -99,7 +99,7 @@ function ProfileSection({ id, className }) {
 
     const handleCloseRedeem = () => {
         if (utorid) {
-            navigate(`/profile/${utorid}/home`);
+            navigate(`/profile/${utorid}/dashboard`);
         } else {
             navigate("/profile");
         }
@@ -107,7 +107,7 @@ function ProfileSection({ id, className }) {
 
         const handleCloseTransfer = () => {
         if (utorid) {
-            navigate(`/profile/${utorid}/home`);
+            navigate(`/profile/${utorid}/dashboard`);
         } else {
             navigate("/profile");
         }

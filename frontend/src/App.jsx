@@ -20,7 +20,7 @@ import ProfileShell from "./components/Profile/ProfileShell.jsx";
 
 function RootRedirect() {
   const token = localStorage.getItem("token");
-  return token ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />;
+  return token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
 }
 
 function App() {
@@ -32,7 +32,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/set-password" element={<SetPassword />} />
-          <Route path="/profile/:utorid/home" element={<Navigate to="/home" replace />} />
+          <Route path="/profile/:utorid/dashboard" element={<Navigate to="/dashboard" replace />} />
 
           <Route element={<ProfileShell />}>
             <Route path="/profile/:utorid/account" element={<Profile />} />
@@ -46,7 +46,7 @@ function App() {
             <Route path="/all-events" element={<AllEvents />} />
             <Route path="/manage-event/:eventId" element={<ManageEvent />} />
             <Route path="/published-events" element={<PublishedEvents />} />
-            <Route path="/home" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/redeem-points" element={<RedeemPoints />} />
             <Route path="/all-transactions" element={<AllTransactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />

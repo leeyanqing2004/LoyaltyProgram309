@@ -11,9 +11,9 @@ function Nav({ id, onToggleNav, navOpen = true, className = "" }) {
 
     const isEvents = path.startsWith("/published-events") || path.startsWith("/all-events");
     const profilePath = user ? `/profile/${user.utorid}/account` : "/login";
-    const dashboardPath = user ? `/home` : "/login";
-    const isDashboard = path === "/home";
-    const isProfile = path.startsWith("/profile/") || path === "/home";
+    const dashboardPath = user ? `/dashboard` : "/login";
+    const isDashboard = path === "/dashboard";
+    const isProfile = path.startsWith("/profile/");
     const isAllUsers = path.startsWith("/all-users");
     const isAllTransactions = path.startsWith("/all-transactions");
     const navClassNames = `${styles.nav} ${className}`.trim();
