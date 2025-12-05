@@ -2,7 +2,7 @@ import { matchPath, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import PageButton from "./PageButton.jsx";
 import styles from './LeftNav.module.css';
-import { capitalize } from "../../utils/capitalize";
+import { Capitalize } from "../../utils/capitalize";
 
 function LeftTop() {
     const { user } = useAuth();
@@ -16,7 +16,7 @@ function LeftTop() {
         <h1 className="left-nav-username">{name}</h1>
         <div className="left-nav-user-details">
             <p className="left-nav-UTORid">{utorid}</p>
-            <p className="left-nav-user-role">{capitalize(role)}</p>
+            <p className="left-nav-user-role">{Capitalize(role)}</p>
         </div>
     </div>;
 
