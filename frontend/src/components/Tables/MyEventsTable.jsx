@@ -102,6 +102,14 @@ export default function MyEventsTable({ title = "My Events" }) {
         if (sortBy === "name") return a.name.localeCompare(b.name);
         return 0;
     });
+    const countForPagination = processedRows.length;
+    const rangeStart = countForPagination === 0 ? 0 : page * rowsPerPage + 1;
+    const rangeEnd = countForPagination === 0 ? 0 : Math.min(countForPagination, page * rowsPerPage + rowsPerPage);
+    const rangeLabel = (() => {
+        if (countForPagination === 0) return "0 of 0";
+        if (countForPagination === 1) return "1 of 1";
+        return `${rangeStart}-${rangeEnd} of ${countForPagination}`;
+    })();
 
     return (
         <div className={styles.eventsTableContainer}>
@@ -191,6 +199,9 @@ export default function MyEventsTable({ title = "My Events" }) {
                 </TableContainer>
 
                 <Box className={styles.tablePaginationBar}>
+                    <div className={styles.rangeInfo}>
+                        {rangeLabel}
+                    </div>
                     <Pagination
                         count={Math.max(1, Math.ceil((processedRows.length || 1) / rowsPerPage))}
                         page={page + 1}
