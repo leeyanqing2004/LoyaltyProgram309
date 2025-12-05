@@ -3,7 +3,7 @@ import { useAuth } from "../../contexts/AuthContext.jsx";
 import PageButton from "./PageButton.jsx";
 import styles from './LeftNav.module.css';
 import ProfileAvatar from './ProfileAvatar.jsx';
-import { capitalize } from "../../utils/capitalize";
+import { Capitalize } from "../../utils/capitalize";
 
 function LeftTop() {
     const { user } = useAuth();
