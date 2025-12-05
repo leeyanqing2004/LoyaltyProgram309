@@ -18,6 +18,7 @@ import AllUsers from './pages/AllUsers';
 import ManageEvent from './pages/ManageEvent';
 import ProfileShell from "./components/Profile/ProfileShell.jsx";
 import MyEvents from "./pages/MyEvents.jsx";
+import MyRedemptions from "./pages/MyRedemptions.jsx";
 import UserSearch from './pages/UserSearch';
 import AllRaffles from './pages/Raffles';
 import MyRaffles from './pages/MyRaffles';
@@ -48,8 +49,10 @@ function App() {
             <Route path="/all-events" element={<AllEvents />} />
             <Route path="/manage-event/:eventId" element={<ManageEvent />} />
             <Route path="/published-events" element={<PublishedEvents />} />
+            <Route path="/my-events" element={<MyEvents />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/redeem-points" element={<RedeemPoints />} />
+            <Route path="/my-redemptions" element={<MyRedemptions />} />
             <Route path="/all-transactions" element={<AllTransactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />
             <Route path="/profile" element={<Profile />} />

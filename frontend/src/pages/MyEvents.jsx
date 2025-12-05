@@ -5,7 +5,13 @@ function MyEvents() {
     return (
         <div className={styles.allEventsTableContainer}>
             <div className={styles.allEventsTableBottomContainer}>
-                <EventsTable eventsTableTitle={"My Events"} managerViewBool={true} showRegisteredOnly={true}/>
+                <EventsTable
+                    eventsTableTitle={"My Events"}
+                    managerViewBool={false}
+                    showRegisteredOnly={true}
+                    showOrganizerEvents={true}
+                    showPastEvents={true}
+                />
             </div>
         </div>
     );
