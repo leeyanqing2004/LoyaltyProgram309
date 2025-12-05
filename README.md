@@ -108,7 +108,7 @@ Developed as the final project for **CSC309 – Programming on the Web (Universi
 #### 2b. Railway Deployment
 1. Go to https://railway.app and log in
 2. Click **New Project** → **Deploy from GitHub repo**
-3. Authorize GitHub and select `LoyaltyProgram309`
+3. Authorize GitHub and select `Sterling`
 4. Railway will detect the monorepo; select the **backend** directory if prompted
 5. Once connected, click **Add Variables** and add the following:
 
