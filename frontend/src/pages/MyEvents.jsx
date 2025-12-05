@@ -1,5 +1,5 @@
 import styles from "./AllEvents.module.css";
-import EventsTable from "../components/Tables/EventsTable";
+import MyEventsTable from "../components/Tables/MyEventsTable";
 
 function MyEvents() {
     return (
