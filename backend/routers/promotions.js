@@ -77,7 +77,7 @@ router.all("/", async (req, res) => {
             
         } else {
             where.startTime = { lte: now };
-            where.endTime = { lt: now };
+            where.endTime = { gte: now };
         }
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -92,6 +92,7 @@ router.all("/", async (req, res) => {
                 select: {
                     id: true,
                     name: true,
+                    description: true,
                     type: true,
                     startTime: true,
                     endTime: true,

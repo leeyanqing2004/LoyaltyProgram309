@@ -29,18 +29,7 @@ function AvailablePromotions() {
 
     return <div className={styles.availPromoPageContainer}>
 
-        {/* top Nav container */}
-        <div className={styles.availPromoNav}>
-            <Nav />
-        </div>
-
-        {/* everything under the top Nav container */}
-        <div className={styles.availPromoLeftNavAndTableContainer}>
-
-            {/* left Nav container */}
-            <div className={styles.availPromoleftNavContainer}>
-                <LeftNav />
-            </div>
+        <PromotionsTable promoTableTitle={"Available Promotions"} availableOnlyBool={true} promotions={promotions}/>
 
             {/* everything to the right of the left Nav container */}
             <div className={styles.availPromoTableContainer}>
