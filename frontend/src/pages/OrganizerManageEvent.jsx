@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../api/api";
 import styles from "./OrganizerManageEvent.module.css";
-import NewGuestPopup from "../components/NewGuestPopup";
+import NewGuestPopup from "../components/Popups/NewGuestPopup";
 import AwardPointsPopup from "../components/Popups/AwardPointsPopup";
 
 export default function OrganizerManageEvent() {
@@ -25,26 +25,24 @@ export default function OrganizerManageEvent() {
     const [endTime, setEndTime] = useState("");
     const [capacity, setCapacity] = useState("");
 
-    // View-only fields
+
     const [pointsRemain, setPointsRemain] = useState("");
     const [pointsAwarded, setPointsAwarded] = useState("");
     const [published, setPublished] = useState(false);
 
-    // Lists
     const [organizers, setOrganizers] = useState([]);
     const [guestsOriginal, setGuestsOriginal] = useState([]);
     const [guestsDraft, setGuestsDraft] = useState([]);
 
-    // Award points UI
+
     const [showAward, setShowAward] = useState(false);
-    const [awardMode, setAwardMode] = useState("single"); // 'single' | 'all'
+    const [awardMode, setAwardMode] = useState("single");
     const [awardUtorid, setAwardUtorid] = useState("");
     const [awardAmount, setAwardAmount] = useState("");
     const [awardRemark, setAwardRemark] = useState("");
     const [confirmAllOpen, setConfirmAllOpen] = useState(false);
     const [confirmSingleOpen, setConfirmSingleOpen] = useState(false);
     const [showGuestPopup, setShowGuestPopup] = useState(false);
-    const [pendingAwards, setPendingAwards] = useState([]);
 
     useEffect(() => {
         if (!toast) return;
@@ -233,6 +231,13 @@ export default function OrganizerManageEvent() {
         <>
             <div className={styles.container}>
                 <div className={styles.contentCard}>
+                    <button
+                        className={styles.backButton}
+                        onClick={() => navigate("/my-events")}
+                    >
+                        ← Back to Events
+                    </button>
+
                     <h1 className={styles.title}>Organizer Edit Event #{eventId}</h1>
                     {toast && (
                         <div
