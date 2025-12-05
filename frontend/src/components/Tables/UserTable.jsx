@@ -6,7 +6,7 @@ import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/
 import { useEffect, useState } from "react";
 import api from "../../api/api";
 import styles from "./UserTable.module.css"
-import ManageUserPopup from "../ManageUserPopup";
+import ManageUserPopup from "../Popups/ManageUserPopup";
 import { Capitalize } from "../../utils/capitalize";
 import { formatDate, formatDateTime } from "../../utils/formatDateTime";
   
@@ -21,6 +21,7 @@ export default function UserTable({ userTableTitle }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [total, setTotal] = useState(0);
+    const [nameFilter, setNameFilter] = useState("");
 
     const [activeUser, setActiveUser] = useState(null);
 
@@ -86,13 +87,6 @@ export default function UserTable({ userTableTitle }) {
             return 0;
         }
     });
-
-    const formatDate = (value) => {
-        if (!value) return "—";
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return value;
-        return date.toLocaleDateString();
-    };
   
     return (
         <>
@@ -101,7 +95,7 @@ export default function UserTable({ userTableTitle }) {
             <Box display="flex" gap={2} mb={2}>
                 {/* Filter Input */}
                 <TextField
-                    label="Filter by Utorid"
+                    label="Filter by UTORid"
                     variant="outlined"
                     size="small"
                     value={utoridFilter}
@@ -128,10 +122,10 @@ export default function UserTable({ userTableTitle }) {
                 </FormControl>
 
                 <FormControl size="small">
-                    <InputLabel>Verified?</InputLabel>
+                    <InputLabel>Verified</InputLabel>
                     <Select
                         value={verifiedFilter}
-                        label="Verified?"
+                        label="Verified"
                         onChange={(e) => setVerifiedFilter(e.target.value)}
                         style={{ minWidth: 150 }}
                     >
@@ -164,7 +158,7 @@ export default function UserTable({ userTableTitle }) {
                     <TableRow>
                         <TableCell>ID</TableCell>
                         <TableCell>Role</TableCell>
-                        <TableCell>Utorid</TableCell>
+                        <TableCell>UTORid</TableCell>
                         <TableCell>Email</TableCell>
                         <TableCell>Birthday</TableCell>
                         <TableCell>Points</TableCell>

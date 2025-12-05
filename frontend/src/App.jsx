@@ -20,6 +20,8 @@ import OrganizerManageEvent from "./pages/OrganizerManageEvent";
 import ProfileShell from "./components/Profile/ProfileShell.jsx";
 import MyEvents from "./pages/MyEvents.jsx";
 import UserSearch from './pages/UserSearch';
+import AllRaffles from './pages/Raffles';
+import MyRaffles from './pages/MyRaffles';
 
 function RootRedirect() {
   const token = localStorage.getItem("token");
@@ -55,6 +57,8 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/user-search" element={<UserSearch />} />
             <Route path="/my-events" element={<MyEvents />} />
+            <Route path="/all-raffles" element={<AllRaffles />} />
+            <Route path="/my-raffles" element={<MyRaffles />} />
           </Route>
         </Routes>
       </AuthProvider>
