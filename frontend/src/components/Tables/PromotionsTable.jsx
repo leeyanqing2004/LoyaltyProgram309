@@ -5,6 +5,10 @@ import {
 import { TextField, FormControl, InputLabel, Select, MenuItem, Box, FormControlLabel } from "@mui/material";
 import { useEffect, useState } from "react";
 import styles from "./PromotionsTable.module.css"
+import { formatDateTime } from "../../utils/formatDateTime";
+import { Capitalize } from "../../utils/capitalize";
+import { formatField } from "../../utils/formatField";
+import { useAuth } from "../../contexts/AuthContext";
   
 export default function PromotionsTable({
     promoTableTitle,
@@ -18,19 +22,8 @@ export default function PromotionsTable({
     totalCount,
     loading = false
 }) {
-    // dummy data
-    // const rows = Array.from({ length: 50 }, (_, i) => ({
-    //     id: i + 1,
-    //     name: "[Promo Name]",
-    //     location: "[Event Location]",
-    //     type: "[e.g. automatic]",
-    //     startTime: "[Start Time]",
-    //     endTime: "[End Time]",
-    //     minSpending: "[e.g. 20]",
-    //     rate: "[e.g. 0.01]",
-    //     points: "[e.g. 50]"
-    // }));
-
+    const { user } = useAuth();
+    const isManagerOrSuperuser = user?.role === "manager" || user?.role === "superuser";
     const rows = promotions || [];
     const [showAvailableOnly, setShowAvailableOnly] = useState(false);
 
@@ -119,7 +112,7 @@ export default function PromotionsTable({
             <Box display="flex" gap={2} mb={2}>
                 {/* Filter Input */}
                 <TextField
-                    label="UTORid"
+                    label="Filter by promotion name"
                     variant="outlined"
                     size="small"
                     value={nameFilter}
@@ -201,24 +194,45 @@ export default function PromotionsTable({
                     </TableHead>
         
                     <TableBody>
-                    {processedRows
-                        .slice(
-                            serverPaging ? 0 : page * rowsPerPage,
-                            serverPaging ? undefined : page * rowsPerPage + rowsPerPage
-                        )
-                        .map((row) => (
-                        <TableRow key={row.id}>
-                            <TableCell>{row.id}</TableCell>
-                            <TableCell>{row.name}</TableCell>
-                            <TableCell>{row.type}</TableCell>
-                            <TableCell>{row.startTime}</TableCell>
-                            <TableCell>{row.endTime}</TableCell>
-                            <TableCell>{row.minSpending}</TableCell>
-                            <TableCell>{row.rate}</TableCell>
-                            <TableCell>{row.points}</TableCell>
-                            <TableCell> <button className={styles.moreDetailsBtn} >More Details</button> </TableCell>
+                    {loading ? (
+                        <TableRow>
+                            <TableCell colSpan={9}>
+                                <div className={styles.tableLoading}>
+                                    <div className={styles.spinner} />
+                                    <span>Loading promotions...</span>
+                                </div>
+                            </TableCell>
                         </TableRow>
-                        ))}
+                    ) : (
+                        processedRows
+                            .slice(
+                                serverPaging ? 0 : page * rowsPerPage,
+                                serverPaging ? undefined : page * rowsPerPage + rowsPerPage
+                            )
+                            .map((row) => (
+                            <TableRow key={row.id}>
+                                <TableCell>{row.id}</TableCell>
+                                <TableCell>{row.name}</TableCell>
+                                <TableCell>{Capitalize(row.type)}</TableCell>
+                                <TableCell>{formatDateTime(row.startTime)}</TableCell>
+                                <TableCell>{formatDateTime(row.endTime)}</TableCell>
+                                <TableCell>{formatField(row.minSpending)}</TableCell>
+                                <TableCell>{formatField(row.rate)}</TableCell>
+                                <TableCell>{formatField(row.points)}</TableCell>
+                                <TableCell>
+                                    {isManagerOrSuperuser ? (
+                                        <button className={styles.moreDetailsBtn}>
+                                            Manage Promotion
+                                        </button>
+                                    ) : (
+                                        <button className={styles.moreDetailsBtn}>
+                                            More Details
+                                        </button>
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                            ))
+                    )}
                     </TableBody>
                 </Table>
                 </TableContainer>
@@ -243,7 +257,7 @@ export default function PromotionsTable({
                             onChange={handleChangeRowsPerPage}
                         >
                             {[5, 10, 25, 50].map(opt => (
-                                <MenuItem key={opt} value={opt}>{opt} page</MenuItem>
+                                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>

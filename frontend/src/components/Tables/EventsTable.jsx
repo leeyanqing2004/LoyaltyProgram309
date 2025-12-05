@@ -8,13 +8,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./EventsTable.module.css";
-
-const formatDateTime = (value) => {
-    if (!value) return "—";
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return value;
-    return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-};
+import { formatDateTime } from "../../utils/formatDateTime";
   
 export default function EventsTable({ eventsTableTitle, managerViewBool, showRegisteredOnly = false }) {
     const { user } = useAuth();
@@ -65,11 +59,9 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
 
     const updateGuestStatus = useCallback(async (eventList) => {
         if (!user || !Array.isArray(eventList) || !eventList.length) {
-            setLoading(false);
             return;
         }
 
-        setLoading(true);
         try {
             const statusPairs = await Promise.all(
                 eventList.map(async (event) => {
@@ -91,8 +83,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
             setRsvps(map);
         } catch (err) {
             console.error("Failed to check RSVP status", err);
-        } finally {
-            setLoading(false);
         }
     }, [user]);
 
@@ -118,6 +108,8 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
 
     useEffect(() => {
         const fetchEvents = async () => {
+            setGuestStatusChecked(false);
+            setLoadingRsvp({});
             setLoading(true);
             try {
                 const params = {
@@ -140,12 +132,14 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                 setRows(events);
                 setTotalCount(response.data.count || 0);
                 // Refresh organizer and RSVP status for current page
-                updateOrganizerStatus(events);
-                updateGuestStatus(events);
+                await updateOrganizerStatus(events);
+                await updateGuestStatus(events);
+                setGuestStatusChecked(true);
             } catch (err) {
                 console.error(err);
                 setRows([]);
                 setTotalCount(0);
+                setGuestStatusChecked(true);
             } finally {
                 setLoading(false);
             }

@@ -16,6 +16,7 @@ function Nav({ id, onToggleNav, navOpen = true, className = "" }) {
     const isProfile = path.startsWith("/profile");
     const isAllUsers = path.startsWith("/all-users");
     const isAllTransactions = path.startsWith("/all-transactions");
+    const isAllPromotions = path.startsWith("/all-promotions");
     const navClassNames = `${styles.nav} ${className}`.trim();
 
     return (
@@ -39,6 +40,12 @@ function Nav({ id, onToggleNav, navOpen = true, className = "" }) {
                 <li className={styles.navListItem}>
                     <Link className={`${styles.navListItemLink} ${isEvents ? styles.active : ""}`} to={eventsPath}>Events</Link>
                 </li>
+
+                {isManager && (
+                    <li className={styles.navListItem}>
+                        <Link className={`${styles.navListItemLink} ${isAllPromotions ? styles.active : ""}`} to="/all-promotions">Promotions</Link>
+                    </li>
+                )}
                 {isManager && (
                     <li className={styles.navListItem}>
                         <Link className={`${styles.navListItemLink} ${isAllUsers ? styles.active : ""}`} to="/all-users">Users</Link>
@@ -51,9 +58,6 @@ function Nav({ id, onToggleNav, navOpen = true, className = "" }) {
                 )}
                 <li className={styles.navListItem}>
                     <Link className={`${styles.navListItemLink} ${isProfile ? styles.active : ""}`} to={profilePath}>Profile</Link>
-                </li>
-                <li className={styles.navListItem}>
-                    <Link className={`${styles.navListItemLink} ${isAllPromotions ? styles.active : ""}`} to="/all-promotions">Promotions</Link>
                 </li>
             </ul>
         </nav>

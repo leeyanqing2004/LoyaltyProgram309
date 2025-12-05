@@ -82,7 +82,7 @@
     /* Decorations */
     border: 1px solid #ccc;
     border-radius: 1em !important;
-
+    font-family: inherit;
 }
 
 
@@ -108,7 +108,7 @@
     /* Decorations */
     border: 1px solid #ccc;
     border-radius: 1em !important;
-
+    font-family: inherit;
 }
 
 .transfer-points-remarks-label { 
@@ -137,6 +137,7 @@
     /* Decorations */
     border: 1px solid #ccc;
     border-radius: 1em !important;
+    font-family: inherit;
 }
 
 .transfer-points-submit-button {

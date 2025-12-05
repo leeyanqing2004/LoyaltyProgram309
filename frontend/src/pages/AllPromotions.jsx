@@ -32,6 +32,10 @@ function AllPromotions() {
         <div className={styles.allPromoLeftNavAndTableContainer}>
             {/* everything to the right of the left Nav container */}
             <div className={styles.allPromoTableContainer}>
+                <div className={styles.allPromoTableTopContainer}>
+                    <button className={styles.allPromoTableTopContainerButton}>+ Create New Promotion</button>
+                </div>
+
                 <PromotionsTable
                     promoTableTitle={"All Promotions"}
                     availableOnlyBool={false}
@@ -47,7 +51,6 @@ function AllPromotions() {
                     totalCount={count}
                     loading={loading}
                 />
-                {loading && <div className={styles.loadingText}>Loading...</div>}
             </div>
         </div>
     </div>;

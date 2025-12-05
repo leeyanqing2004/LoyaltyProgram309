@@ -91,6 +91,7 @@
     /* Decorations */
     border: 1px solid #ccc;
     border-radius: 1em !important;
+    font-family: inherit;
 }
 
 .redeemPointsPopupError {
@@ -128,6 +129,7 @@
     width: 100%;
     box-sizing: border-box;
     resize: none;
+    font-family: inherit;
 }
 
 .redeemPointsPopupSubmitButton {
