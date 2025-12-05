@@ -25,6 +25,7 @@ export default function TransactionTable({
     // transactions = an array of transactions = [{"id": 123, "utorid": ...}, {"id": 124, "utorid": ...}]
   
     const rows = transactions;
+    console.log(rows)
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -50,20 +51,20 @@ export default function TransactionTable({
 
 
     const processedRows = rows
-    // FILTER
     .filter((row) =>
         (idFilter === "" || row.id === Number(idFilter)) &&
-        row.createdBy?.toLowerCase().includes(createdByFilter.toLowerCase()) &&
-        row.type?.toLowerCase().includes(transactionTypeFilter.toLowerCase()) &&
-        row.utorid?.toLowerCase().includes(utoridFilter.toLowerCase())
+        (row.createdBy || "").toLowerCase().includes(createdByFilter.toLowerCase()) &&
+        (row.type || "").toLowerCase().includes(transactionTypeFilter.toLowerCase()) &&
+        (row.utorid || "").toLowerCase().includes(utoridFilter.toLowerCase())
     )
-    // SORT
     .sort((a, b) => {
         if (!sortBy) return 0;
         if (sortBy === "id") return a.id - b.id;
-        if (sortBy === "amount") return a.amount - b.amount;
+        if (sortBy === "amount") return Number(a.amount) - Number(b.amount);
         return 0;
     });
+
+    console.log(processedRows)
   
     return (
         <>
@@ -154,12 +155,12 @@ export default function TransactionTable({
                             .map((row) => (
                             <TableRow key={row.id}>
                                 <TableCell>{row.id}</TableCell>
-                                {includeManageButton && <TableCell>{row.utorid}</TableCell>}
-                                <TableCell>{Capitalize(row.type)}</TableCell>
+                                {includeManageButton && <TableCell>{row.utorid || "---"}</TableCell>}
+                                <TableCell>{Capitalize(row.type) || "---"}</TableCell>
                                 <TableCell>{row.amount}</TableCell>
-                                <TableCell>{row.remark}</TableCell>
-                                <TableCell>{row.promotionIds}</TableCell>
-                                <TableCell>{row.createdBy}</TableCell>
+                                <TableCell>{row.remark || "---"}</TableCell>
+                                <TableCell>{row.promotionIds?.length ? row.promotionIds.join(", ") : "---"}</TableCell>
+                                <TableCell>{row.createdBy || "---"}</TableCell>
                                 {/* <TableCell>Additional Info Here</TableCell> */}
                                 <TableCell>
                                     {Object.entries(row)
@@ -169,7 +170,7 @@ export default function TransactionTable({
                                         )
                                         .map(([key, value]) => (
                                             <div key={key}>
-                                                <strong>{Capitalize(key)}:</strong> {value?.toString()}
+                                                <strong>{Capitalize(key)}:</strong> {value?.toString() || "N/A"}
                                             </div>
                                         ))}
                                 </TableCell>

@@ -20,7 +20,9 @@ function PastTransactions() {
 
     useEffect(() => {
         async function loadData() {
+            console.log(`getting transactions now`)
             const data = await getMyTransactions({ limit: 10000 });
+            console.log(data.results)
             setPastTransactions(data.results);
             setCount(data.count);
         }
