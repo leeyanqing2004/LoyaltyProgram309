@@ -24,6 +24,7 @@ function Dashboard() {
 
     const [recentTransactions, setRecentTransactions] = useState([]);
     const [count, setCount] = useState(0);
+    const [recentLoading, setRecentLoading] = useState(false);
     const [availablePoints, setavailablePoints] = useState(user?.points ?? null);
     {/* const [qrInfo, setQrInfo] = useState([]); */}
     const [showRegisterPopup, setShowRegisterPopup] = useState(false);
@@ -40,9 +41,18 @@ function Dashboard() {
         if (didLoadRef.current) return;
         didLoadRef.current = true;
         async function loadData() {
-            const data = await getRecentTransactions();
-            setRecentTransactions(data.results);
-            setCount(data.count);
+            setRecentLoading(true);
+            try {
+                const data = await getRecentTransactions();
+                setRecentTransactions(data.results);
+                setCount(data.count);
+            } catch (err) {
+                console.error("Failed to load recent transactions", err);
+                setRecentTransactions([]);
+                setCount(0);
+            } finally {
+                setRecentLoading(false);
+            }
 
             setPointsLoading(true);
             try {
@@ -77,6 +87,7 @@ function Dashboard() {
                             loading={pointsLoading}
                             onTransfer={() => setShowTransfer(true)}
                             onRedeem={() => setShowRedeem(true)}
+                            onRaffleExploration={() => window.location.assign("/all-raffles")}
                         />
                     </div>
 
@@ -111,7 +122,13 @@ function Dashboard() {
                 </div>
 
                 <div className={styles.dashboardDashBottomContainer}>
-                    <TransactionTable transTableTitle={"Recent Transactions"} includeManageButton={false} recentOnlyBool={true} transactions={recentTransactions} />
+                    <TransactionTable
+                        transTableTitle={"Recent Transactions"}
+                        includeManageButton={false}
+                        recentOnlyBool={true}
+                        transactions={recentTransactions}
+                        loading={recentLoading}
+                    />
                 </div>
 
                 {showTransfer && <TransferPointsPopup onClose={() => setShowTransfer(false)} />}

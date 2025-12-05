@@ -8,9 +8,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./EventsTable.module.css";
-import { formatDateTime } from "../../utils/formatDateTime";
 import "../Popups/DetailsPopup.css";
 import EventDetailsPopup from "../Popups/EventDetailsPopup";;
+import { formatDateTime } from "../../utils/formatDateTime";
   
 export default function EventsTable({ eventsTableTitle, managerViewBool, showRegisteredOnly = false }) {
     const { user } = useAuth();
@@ -141,16 +141,24 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                 } catch (statusErr) {
                     console.error("Failed to refresh organizer/guest status", statusErr);
                 }
-                setGuestStatusChecked(true);
 
                 // Fetch RSVP status for all events in one call
                 try {
                     const rsvpRes = await api.get("/users/me/guests");
                     const eventIds = rsvpRes.data.eventIds || [];
                     setRsvpedEventIds(new Set(eventIds));
+                    if (eventIds.length) {
+                        const nextMap = {};
+                        eventIds.forEach((id) => {
+                            nextMap[id] = true;
+                        });
+                        setRsvps((prev) => ({ ...prev, ...nextMap }));
+                    }
                 } catch (rsvpErr) {
                     console.error("Failed to fetch RSVP status", rsvpErr);
                     setRsvpedEventIds(new Set());
+                } finally {
+                    setGuestStatusChecked(true);
                 }
             } catch (err) {
                 console.error(err);

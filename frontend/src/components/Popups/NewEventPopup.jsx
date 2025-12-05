@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import styles from "./NewEventPopup.module.css";
 import api from "../../api/api";
 
@@ -207,3 +207,5 @@ function NewEventPopup({ show = false, onClose, onCreated }) {
 }
 
 export default NewEventPopup;
+
+

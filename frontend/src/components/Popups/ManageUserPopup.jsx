@@ -9,7 +9,7 @@ function DetailRow({ label, value }) {
     return (
         <div className="mup-detail-row">
             <div className="mup-detail-label">{label}</div>
-            <div className="mup-detail-value">{value ?? "—"}</div>
+            <div className="mup-detail-value">{value ?? "--"}</div>
         </div>
     );
 }
@@ -160,7 +160,7 @@ function ManageUserPopup({ show = true, onClose, user, onUserUpdate }) {
     return (
         <div className="manage-user-popup" onClick={handleClose}>
             <div className="manage-user-popup-content" onClick={(e) => e.stopPropagation()}>
-                <button className="manage-user-popup-close-button" onClick={handleClose}>X</button>
+                <button className="manage-user-popup-close-button" onClick={handleClose} aria-label="Close">×</button>
                 <div className="mup-header">
                     <div>
                         <div className="mup-title">{user.name}</div>
@@ -225,7 +225,7 @@ function ManageUserPopup({ show = true, onClose, user, onUserUpdate }) {
                             </button>
                         </div>
                         <div className="mup-detail-value mup-email-display">
-                            {user?.email || "—"}
+                            {user?.email || "�"}
                         </div>
                     </div>
                     <DetailRow label="Last Login" value={formatDate(user.lastLogin)} />
@@ -260,7 +260,7 @@ function ManageUserPopup({ show = true, onClose, user, onUserUpdate }) {
                             <button className="mup-email-edit-close" onClick={() => {
                                 setShowEmailEditPopup(false);
                                 setEmailValue(user.email || "");
-                            }}>x</button>
+                            }}>�</button>
                         </div>
                         <input
                             type="email"
@@ -301,3 +301,19 @@ function ManageUserPopup({ show = true, onClose, user, onUserUpdate }) {
 }
 
 export default ManageUserPopup;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

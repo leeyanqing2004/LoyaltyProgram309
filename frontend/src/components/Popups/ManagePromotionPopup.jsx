@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import api from "../../api/api";
 import styles from "./NewPromotionPopup.module.css";
 
@@ -247,3 +247,5 @@ function ManagePromotionPopup({ show = false, onClose, promotion, onPromotionUpd
 }
 
 export default ManagePromotionPopup;
+
+

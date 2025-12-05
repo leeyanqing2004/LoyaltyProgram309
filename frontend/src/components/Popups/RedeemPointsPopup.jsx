@@ -75,7 +75,7 @@ function RedeemPointsPopup({ show = true, setShow, onClose }) {
 
     return show && <div className={styles.redeemPointsPopupRedemptionPopup} onClick={handleClose}>
         <div className={styles.redeemPointsPopupContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.redeemPointsPopupCloseButton} onClick={handleClose}>X</button>
+            <button className={styles.redeemPointsPopupCloseButton} onClick={handleClose}>×</button>
             <h2 className={styles.redeemPointsPopupTitle}>Redeem Points</h2>
             {!success && (
                 <>
@@ -109,7 +109,7 @@ function RedeemPointsPopup({ show = true, setShow, onClose }) {
                             id="redeemPointsPopupRemarksInput"
                             className={styles.redeemPointsPopupRemarksInput}
                             name="redeemPointsPopupRemarksInput"
-                            placeholder="Enter any remarks here..."
+                            placeholder="Optional"
                             rows="3"
                             value={remarks}
                             onChange={(e) => setRemarks(e.target.value)}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import styles from "./NewPromotionPopup.module.css";
 import api from "../../api/api";
 
@@ -225,3 +225,5 @@ function NewPromotionPopup({ show = false, onClose, onCreated }) {
 }
 
 export default NewPromotionPopup;
+
+

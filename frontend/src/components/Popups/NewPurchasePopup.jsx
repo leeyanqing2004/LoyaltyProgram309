@@ -65,7 +65,7 @@ export default function NewPurchasePopup({ initialUtorid = "", promotionsOptions
           label="Remarks"
           value={remark}
           onChange={(e) => setRemark(e.target.value)}
-          placeholder="Optional remarks"
+          placeholder="Optional"
         />
 
         {error && <div className="popup-error">{error}</div>}

@@ -34,7 +34,7 @@ function NewOrganizerPopup({ eventId, onClose, onSuccess }) {
         <div className={styles.newGuestPopup} onClick={onClose}>
             <div className={styles.newGuestPopupContent} onClick={(e) => e.stopPropagation()}>
                 <button className={styles.newGuestPopupCloseButton} onClick={onClose}>
-                    X
+                    ×
                 </button>
                 <h2 className={styles.newGuestPopupTitle}>New Organizer</h2>
                 <div className={styles.newGuestPopupUtorid}>

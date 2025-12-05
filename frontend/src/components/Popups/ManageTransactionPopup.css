@@ -54,8 +54,10 @@
     color: black;
     background: none;
     border: none;
+    font-size: 16px;
     border-radius: 50%;
     transition: background 0.15s ease;
+    cursor: pointer;
 }
 
 .manage-transaction-popup-close-button:hover {

@@ -71,7 +71,7 @@ function TransferPointsPopup({ onClose }) {
 
     return <div className="transfer-points-redemption-popup" onClick={onClose}>
         <div className="transfer-points-content" onClick={(e) => e.stopPropagation()}>
-            <button className="transfer-points-close-button" onClick={onClose}>X</button>
+            <button className="transfer-points-close-button" onClick={onClose}>×</button>
             <h2 className="transfer-points-title">Transfer Points</h2>
             {!success && (
                 <>
@@ -117,7 +117,7 @@ function TransferPointsPopup({ onClose }) {
                         <textarea 
                             id="transfer-points-remarks-input"
                             name="transfer-points-remarks-input"
-                            placeholder="Enter any remarks here..."
+                            placeholder="Optional"
                             rows="4"
                             value={remark}
                             onChange={(e) => setRemark(e.target.value)}

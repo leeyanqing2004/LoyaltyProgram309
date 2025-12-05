@@ -21,6 +21,7 @@ export default function UserTable({ userTableTitle }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [total, setTotal] = useState(0);
+    const [nameFilter, setNameFilter] = useState("");
 
     const [activeUser, setActiveUser] = useState(null);
 
@@ -33,7 +34,7 @@ export default function UserTable({ userTableTitle }) {
                     params: {
                         limit: rowsPerPage,
                         page: page + 1,
-                        name: filter || undefined
+                        name: nameFilter || undefined
                     }
                 });
                 const data = res.data?.results ?? res.data ?? [];
@@ -48,7 +49,7 @@ export default function UserTable({ userTableTitle }) {
             }
         };
         fetchUsers();
-    }, [page, rowsPerPage, filter]);
+    }, [page, rowsPerPage, nameFilter]);
   
     const handleChangePage = (_, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (e) => {
@@ -84,13 +85,6 @@ export default function UserTable({ userTableTitle }) {
             return 0;
         }
     });
-
-    const formatDate = (value) => {
-        if (!value) return "—";
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return value;
-        return date.toLocaleDateString();
-    };
   
     return (
         <>
@@ -126,10 +120,10 @@ export default function UserTable({ userTableTitle }) {
                 </FormControl>
 
                 <FormControl size="small">
-                    <InputLabel>Verified?</InputLabel>
+                    <InputLabel>Verified</InputLabel>
                     <Select
                         value={verifiedFilter}
-                        label="Verified?"
+                        label="Verified"
                         onChange={(e) => setVerifiedFilter(e.target.value)}
                         style={{ minWidth: 150 }}
                     >
@@ -179,7 +173,7 @@ export default function UserTable({ userTableTitle }) {
                         <TableRow key={row.id}>
                             <TableCell>{row.id}</TableCell>
                             <TableCell>{Capitalize(row.role)}</TableCell>
-                            <TableCell>{row.name}</TableCell>
+                            <TableCell>{row.utorid}</TableCell>
                             <TableCell>{row.email}</TableCell>
                             <TableCell>{formatDate(row.birthday)}</TableCell>
                             <TableCell>{row.points}</TableCell>

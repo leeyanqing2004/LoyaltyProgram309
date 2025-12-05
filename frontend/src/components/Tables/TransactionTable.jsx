@@ -236,7 +236,7 @@ export default function TransactionTable({
                                         {includeManageButton && <TableCell>{row.utorid}</TableCell>}
                                         <TableCell>{Capitalize(row.type)}</TableCell>
                                         <TableCell>{row.amount}</TableCell>
-                                        <TableCell>{row.remark}</TableCell>
+                                        <TableCell>{formatField(row.remark)}</TableCell>
                                         <TableCell>{formatField(row.promotionIds)}</TableCell>
                                         <TableCell>{row.createdBy}</TableCell>
                                         {/* <TableCell>Additional Info Here</TableCell> */}

@@ -84,12 +84,18 @@
 .field select {
     width: 100%;
     padding: 10px 12px;
+    height: 42px;
     border: 1px solid #d6d8dd;
     border-radius: 10px;
     font-size: 14px;
     font-family: inherit;
     box-sizing: border-box;
     background: #fff;
+    cursor: pointer;
+}
+
+.field select option {
+    cursor: pointer;
 }
 
 .field input:focus,

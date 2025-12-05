@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import api from "../../api/api";
 import "./ManageTransactionPopup.css";
 import { Capitalize } from "../../utils/capitalize";
@@ -160,7 +160,7 @@ function ManageTransactionPopup({ show = true, onClose, transaction, onTransacti
                     <DetailRow label="Type" value={Capitalize(tx.type)} />
                     <DetailRow label="Created By" value={tx.createdBy} />
                     <DetailRow label="Remark" value={tx.remark} />
-                    <DetailRow label="Promotions Applied" value={tx.promotionIds?.join(", ") || "--"} />
+                    <DetailRow label="Promotions Applied" value={tx.promotionIds?.join(", ") || "—"} />
                     <DetailRow label="Suspicious" value={suspicious ? "Yes" : "No"} />
                 </div>
                 <button className="mtp-primary" onClick={() => setStep("adjust")}>
@@ -204,7 +204,7 @@ function ManageTransactionPopup({ show = true, onClose, transaction, onTransacti
                     <input
                         id="mtp-promos"
                         type="text"
-                        placeholder="e.g. 12, 15, 18"
+                        placeholder="e.g. 12, 15, 18 (optional)"
                         value={promotionIds}
                         onChange={(e) => setPromotionIds(e.target.value)}
                         disabled={submitting}
@@ -216,7 +216,7 @@ function ManageTransactionPopup({ show = true, onClose, transaction, onTransacti
                     <textarea
                         id="mtp-remark"
                         rows="3"
-                        placeholder="Enter any remarks here..."
+                        placeholder="Optional"
                         value={remark}
                         onChange={(e) => setRemark(e.target.value)}
                         disabled={submitting}
@@ -230,13 +230,12 @@ function ManageTransactionPopup({ show = true, onClose, transaction, onTransacti
     };
 
     const renderSuccess = () => {
-        const successTx = createdTx || currentTransaction || transaction;
-        if (!successTx) return null;
+        // Always show the adjustment transaction that was created
+        if (!createdTx) return null;
+        const successTx = createdTx;
         return (
             <div className="mtp-success-card">
-                <button className="manage-transaction-popup-close-button" onClick={handleClose}>
-                    ×
-                </button>
+                <button className="manage-transaction-popup-close-button" onClick={handleClose} aria-label="Close">×</button>
                 <div className="mtp-success-title">Adjustment Transaction successfully created.</div>
                 <div className="mtp-success-details">
                     <div className="mtp-success-row">
@@ -306,9 +305,7 @@ function ManageTransactionPopup({ show = true, onClose, transaction, onTransacti
         <div className="manage-transaction-popup" onClick={handleClose}>
             <div className={containerClass} onClick={(e) => e.stopPropagation()}>
                 {step !== "success" && (
-                    <button className="manage-transaction-popup-close-button" onClick={handleClose}>
-                        ✕
-                    </button>
+                    <button className="manage-transaction-popup-close-button" onClick={handleClose} aria-label="Close">×</button>
                 )}
                 {step === "view" && renderView()}
                 {step === "adjust" && renderAdjust()}
@@ -324,3 +321,17 @@ function ManageTransactionPopup({ show = true, onClose, transaction, onTransacti
 }
 
 export default ManageTransactionPopup;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
