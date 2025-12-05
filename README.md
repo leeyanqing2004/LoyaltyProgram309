@@ -7,7 +7,7 @@ Developed as the final project for **CSC309 – Programming on the Web (Universi
 
 ##  Group Members
 
-| Name | UTORID |
+| Name | UTORid |
 |------|--------|
 | Gabriel Lee | leegab10 |
 | Shah Kabir | kabirsh7 |
