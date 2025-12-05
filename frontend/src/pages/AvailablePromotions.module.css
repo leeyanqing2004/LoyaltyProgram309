@@ -2,6 +2,38 @@ body {
     margin: 0;
 }
 
+.availPromoPageContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+}
+
+.availPromoNav {
+    flex: 0 0 auto;
+    width: 100%
+}
+
+.availPromoLeftNavAndTableContainer {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* i feel like the button for opening and closing Left Nav should be on the Page level */
+/* so that the button can just change the visibility of the CONTAINER holding the Left Nav*/
+
+.availPromoleftNavContainer.nonvisible {
+    display: none;
+    width: 250px;
+    flex-shrink: 0;
+}
+
+.availPromoleftNavContainer {
+    display: block;
+}
+
 .availPromoTableContainer {
     display: flex;
     flex-direction: column;

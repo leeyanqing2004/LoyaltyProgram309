@@ -10,6 +10,7 @@ import { Capitalize } from "../../utils/capitalize";
 import { formatField } from "../../utils/formatField";
 import { useAuth } from "../../contexts/AuthContext";
 import ManagePromotionPopup from "../ManagePromotionPopup";
+import PromotionDetailsPopup from "../Popups/PromotionDetailsPopup";
   
 export default function PromotionsTable({
     promoTableTitle,
@@ -39,6 +40,10 @@ export default function PromotionsTable({
     const [spentFilter, setSpentFilter] = useState("");
     const [promotionTypeFilter, setPromotionTypeFilter] = useState("");
     const [sortBy, setSortBy] = useState("");
+    const [selectedPromotion, setSelectedPromotion] = useState(null);
+
+    const handleShowDetails = (promotion) => setSelectedPromotion(promotion);
+    const handleCloseDetails = () => setSelectedPromotion(null);
   
     useEffect(() => {
         if (serverPaging && typeof controlledPage === "number") {

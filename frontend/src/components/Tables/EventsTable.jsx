@@ -1,14 +1,16 @@
+import { useState, useEffect, useCallback } from "react";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead,
-    TableRow, Paper, Pagination
+    TableRow, Paper, TablePagination, TextField, FormControl,
+    InputLabel, Select, MenuItem, Box, Pagination
 } from "@mui/material";
-import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
-import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./EventsTable.module.css";
 import { formatDateTime } from "../../utils/formatDateTime";
+import "../Popups/DetailsPopup.css";
+import EventDetailsPopup from "../Popups/EventDetailsPopup";;
   
 export default function EventsTable({ eventsTableTitle, managerViewBool, showRegisteredOnly = false }) {
     const { user } = useAuth();
@@ -105,6 +107,8 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
             setPage(0);
         }
     }, [showRegisteredOnly]);
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [rsvpedEventIds, setRsvpedEventIds] = useState(new Set());
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -135,11 +139,19 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                 await updateOrganizerStatus(events);
                 await updateGuestStatus(events);
                 setGuestStatusChecked(true);
+                updateOrganizerStatus(events);
+                updateGuestStatus(events);
+
+                // Fetch RSVP status for all events in one call
+                const rsvpRes = await api.get("/users/me/guests");
+                const eventIds = rsvpRes.data.eventIds || [];
+                setRsvpedEventIds(new Set(eventIds));
             } catch (err) {
                 console.error(err);
                 setRows([]);
                 setTotalCount(0);
                 setGuestStatusChecked(true);
+                setRsvpedEventIds(new Set());
             } finally {
                 setLoading(false);
             }
@@ -177,6 +189,11 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                 // Un-RSVP: DELETE request
                 await api.delete(`/events/${eventId}/guests/me`);
                 setRsvps((prev) => ({ ...prev, [eventId]: false }));
+                setRsvpedEventIds((prev) => {
+                    const next = new Set(prev);
+                    next.delete(eventId);
+                    return next;
+                });
                 setRows((prevRows) =>
                     prevRows.map((r) =>
                         r.id === eventId ? { ...r, numGuests: Math.max(0, r.numGuests - 1) } : r
@@ -187,6 +204,11 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                 // RSVP: POST request
                 const response = await api.post(`/events/${eventId}/guests/me`);
                 setRsvps((prev) => ({ ...prev, [eventId]: true }));
+                setRsvpedEventIds((prev) => {
+                    const next = new Set(prev);
+                    next.add(eventId);
+                    return next;
+                });
                 setRows((prevRows) =>
                     prevRows.map((r) =>
                         r.id === eventId
@@ -216,6 +238,16 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
         }
     };
 
+    const handleMoreDetails = (event) => {
+        setSelectedEvent(event); // Set the selected event for the popup
+    };
+
+    const handleClosePopup = () => {
+        setSelectedEvent(null); // Close the popup
+    };
+
+    // Note: unified RSVP toggle via handleRsvp(event). No duplicate handlers.
+
     const filteredRows = (showRegisteredOnly && !loading ? rows.filter(row => Boolean(rsvps[row.id])) : rows);
     const processedRows = filteredRows
     // SORT
@@ -239,7 +271,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
         <div className={styles.eventsTableContainer}>
             <div className={styles.eventsTableTitle}>{eventsTableTitle}</div>
             <Box display="flex" gap={2} mb={2}>
-                {/* Filter Input */}
                 <TextField
                     label="Filter by event name"
                     variant="outlined"
@@ -247,8 +278,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                 />
-
-                {/* Sort Dropdown */}
                 <FormControl size="small">
                     <InputLabel>Sort By</InputLabel>
                     <Select
@@ -429,14 +458,21 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
             </Paper>
             {toast && (
                 <div
-                    className={`${styles.toast} ${
-                        toast.type === "error" ? styles.toastError : styles.toastSuccess
-                    }`}
+                    className={`${styles.toast} ${toast.type === "error" ? styles.toastError : styles.toastSuccess
+                        }`}
                 >
                     {toast.message}
                 </div>
             )}
+            {selectedEvent && (
+                <EventDetailsPopup
+                    event={selectedEvent}
+                    rsvped={rsvpedEventIds.has(selectedEvent.id)}
+                    onClose={handleClosePopup}
+                    onRsvp={() => handleRsvp(selectedEvent)}
+                    onUnRsvp={() => handleRsvp(selectedEvent)}
+                />
+            )}
         </div>
     );
 }
-  
