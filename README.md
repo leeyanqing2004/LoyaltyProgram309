@@ -232,7 +232,7 @@ Start the backend:
 node index.js 3000
 ```
 
-✅ Backend runs at: `http://localhost:3000`
+Backend runs at: `http://localhost:3000`
 
 ### **Step 3: Frontend Setup**
 
@@ -272,10 +272,10 @@ Use these credentials to test the application across different user roles:
 
 | Role | Username | Password | Permissions |
 |------|----------|----------|-------------|
-| **Superuser** | superuser1 | password123! | Full system access |
-| **Manager** | manager1 | password123! | View/manage transactions, create adjustments, manage promotions |
-| **Cashier** | cashier1 | password123! | Create purchases, process redemptions |
-| **Regular User** | user1 | password123! | View own transactions, redeem/transfer points |
+| **Superuser** | superuser1 | Password123! | Full system access |
+| **Manager** | manager1 | Password123! | View/manage transactions, create adjustments, manage promotions |
+| **Cashier** | cashier1 | Password123! | Create purchases, process redemptions |
+| **Regular User** | user1 | Password123! | View own transactions, redeem/transfer points |
 
 **Note:** These accounts are auto-seeded when you run `npx prisma db seed`. If using production Supabase, manually insert these records via the SQL editor.
 
