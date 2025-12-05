@@ -15,9 +15,9 @@ const port = process.env.PORT || 3000;
 dotenv.config();
 
 
-const port = (() => {
+// PORT HANDLING: Render requires using process.env.PORT
+const port = process.env.PORT || (() => {
     const args = process.argv;
-
     if (args.length !== 3) {
         console.error("usage: node index.js port");
         process.exit(1);
@@ -28,7 +28,6 @@ const port = (() => {
         console.error("error: argument must be an integer.");
         process.exit(1);
     }
-
     return num;
 })();
 
