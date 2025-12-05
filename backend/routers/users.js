@@ -3,6 +3,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { v4: uuidv4 } = require('uuid');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 const clearanceRequired = require('../middleware/clearance');
@@ -152,9 +153,9 @@ router.post('/', clearanceRequired('cashier'), async (req, res) => {
 /*
  * GET /users
  * Retrieve a list of users
- * Clearance: Manager or higher
+ * Clearance: Cashier or higher
  */
-router.get('/', clearanceRequired('manager'), async (req, res) => {
+router.get('/', clearanceRequired('cashier'), async (req, res) => {
     console.log("Running GET /users");
     const { name, role, verified, activated, page = "1", limit = "10" } = req.query;
 
@@ -618,43 +619,7 @@ router.all('/:userId', (req, res) => {
 });
 
 async function computeUserPointsForUser(user) {
-    const transactions = await prisma.transaction.findMany({
-        where: { utorid: user.utorid },
-        select: {
-            type: true,
-            amount: true,
-            suspicious: true,
-            processed: true,
-            senderId: true,
-            recipientId: true
-        }
-    });
-
-    let total = 0;
-
-    for (const t of transactions) {
-        if (t.suspicious) continue;
-        if (t.type === "purchase" || t.type === "event") {
-            total += t.amount;
-            continue;
-        }
-        if (t.type === "transfer") {
-            if (t.senderId === user.id) {
-                total -= t.amount;
-            } else if (t.recipientId === user.id) {
-                total += t.amount;
-            }
-            continue;
-        }
-        if (t.type === "redemption") {
-            if (t.processed) {
-                total -= t.amount;
-            }
-            continue;
-        }
-    }
-
-    return total;
+    return user?.points ?? 0;
 }
 
 // helper function to check the types of values in payload
@@ -698,11 +663,11 @@ router.all("/me/transactions", clearanceRequired('regular'), async (req, res) =>
         if (amount <= 0 || !Number.isInteger(amount)) {
             return res.status(400).json({ error: "Redemption amount must be positive integer" });
         }
-        if (amount > user.points) {
-            return res.status(400).json({ error: "Redemption amount exceeds point balance." });
-        }
-        if (!user.verified) {
-            return res.status(403).json({ error: "Forbidden: user is not verified" });
+      if (amount > user.points) {
+          return res.status(400).json({ error: "Redemption amount exceeds point balance." });
+      }
+      if (!user.verified) {
+          return res.status(403).json({ error: "Forbidden: user is not verified" });
         }
 
         const newRedemption = await prisma.transaction.create({
@@ -722,13 +687,18 @@ router.all("/me/transactions", clearanceRequired('regular'), async (req, res) =>
                     select: { utorid: true }
                 }
             }
-        })
+          })
+  
+          await prisma.user.update({
+              where: { id: user.id },
+              data: { points: user.points - amount }
+          });
 
-        return res.status(201).json({
-            id: newRedemption.id,
-            utorid: newRedemption.utorid,
-            type: newRedemption.type,
-            processedBy: null,
+          return res.status(201).json({
+              id: newRedemption.id,
+              utorid: newRedemption.utorid,
+              type: newRedemption.type,
+              processedBy: null,
             amount: newRedemption.amount,
             remark: newRedemption.remark,
             createdBy: newRedemption.createdBy.utorid
@@ -867,7 +837,7 @@ router.get("/resolve/:utorid", clearanceRequired('regular'), async (req, res) =>
 
 router.all("/:userId/transactions", clearanceRequired('regular'), async (req, res) => {
     if (req.method !== "POST") {
-        return res.status(405).send({error: "Method Not Allowed"});
+        return res.status(405).send({error: "Method not allowed"});
     }
     const keys = Object.keys(req.body);
     const allowedKeys = ['type', 'amount', 'remark'];
@@ -881,23 +851,23 @@ router.all("/:userId/transactions", clearanceRequired('regular'), async (req, re
     if (!checkTypes([type, amount, remark], 
                     ['string', 'number', 'string'],
                     [true, true, false])) {
-                    return res.status(400).json({ error: "Faulty payload field type." });
+                    return res.status(400).json({ error: "Faulty payload field type" });
     }
 
     const senderId = req.auth.id;
     const sender = await prisma.user.findUnique({where: { id: senderId }})
 
     if (type !== 'transfer') { 
-        return res.status(400).json({ error: "Type must be transfer." });
+        return res.status(400).json({ error: "Type must be transfer" });
     }
     if (amount <= 0 || !Number.isInteger(amount)) {
-        return res.status(400).json({ error: "Amount must be positive integer." });
+        return res.status(400).json({ error: "Amount must be positive integer" });
     }
     if (amount > sender.points) {
-        return res.status(400).json({ error: "Amount to send exceeds point balance." });
+        return res.status(400).json({ error: "Amount to send exceeds point balance" });
     }
     if (!sender.verified) {
-        return res.status(403).json({ error: "Forbidden: sender not verified." });
+        return res.status(403).json({ error: "Please verify your account" });
     }
 
     const receiverIdentifier = req.params.userId;
@@ -906,7 +876,7 @@ router.all("/:userId/transactions", clearanceRequired('regular'), async (req, re
         : await prisma.user.findUnique({ where: { id: parseInt(receiverIdentifier) } });
 
     if (!receiver) {
-        return res.status(404).send({ error: "Receiver with id or utorid not found" });
+        return res.status(404).send({ error: "Receiver with UTORid not found" });
     }
 
     const newTransfer1 = await prisma.transaction.create({
@@ -1043,5 +1013,34 @@ function isValidBirthday(date) {
     const d = new Date(Date.UTC(year, month - 1, day));
     return d.getUTCFullYear() === year && d.getUTCMonth() === month - 1 && d.getUTCDate() === day;
 }
+
+/**
+ * GET /users/me/guests
+ * Returns all event IDs the current user is a guest of
+ * Clearance: Regular or higher
+ */
+router.get('/me/guests', clearanceRequired('regular'), async (req, res) => {
+    const authHdr = req.headers.authorization;
+    if (!authHdr) return res.status(401).json({ error: "Unauthorized" });
+
+    const token = authHdr.split(' ')[1];
+    let decoded;
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { utorid: decoded.utorid },
+        include: { guest: true }
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // user.guest is an array of EventGuest objects
+    const eventIds = user.guest.map(g => g.eventId);
+
+    return res.json({ eventIds });
+});
 
 module.exports = router;

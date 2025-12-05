@@ -4,30 +4,25 @@ import { getMyTransactions } from "../api/getTransactionsApi";
 import React, { useState, useEffect } from "react";
 
 function PastTransactions() {
-
-    const [filters, setFilters] = useState({
-        type: "",
-        relatedId: "",
-        promotionId: "",
-        amount: "",
-        operator: "",
-        page: 1,
-        limit: 10
-    });
-
     const [pastTransactions, setPastTransactions] = useState([]);
     const [count, setCount] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     useEffect(() => {
-        async function loadData() {
-            console.log(`getting transactions now`)
-            const data = await getMyTransactions({ limit: 10000 });
-            console.log(data.results)
-            setPastTransactions(data.results);
-            setCount(data.count);
-        }
-        loadData();
-    }, []);
+        const load = async () => {
+            setLoading(true);
+            try {
+                const data = await getMyTransactions({ limit: rowsPerPage, page: page + 1 });
+                setPastTransactions(data?.results || []);
+                setCount(data?.count || 0);
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, [page, rowsPerPage]);
 
     return <div className={styles.pastTransactionsTableContainer}>
         <TransactionTable 
@@ -35,7 +30,18 @@ function PastTransactions() {
         includeManageButton={false} 
         recentOnlyBool={false}
         transactions={pastTransactions}
+        serverPaging
+        page={page}
+        rowsPerPage={rowsPerPage}
+        onPageChange={setPage}
+        onRowsPerPageChange={(val) => {
+            setRowsPerPage(val);
+            setPage(0);
+        }}
+        totalCount={count}
+        loading={loading}
         />
+        {loading && <div className={styles.loadingText}>Loading...</div>}
     </div>;
 }
 

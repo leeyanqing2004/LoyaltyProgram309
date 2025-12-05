@@ -1,6 +1,6 @@
 import {
     Table, TableBody, TableCell, TableContainer, TableHead,
-    TableRow, Paper, TablePagination
+    TableRow, Paper, Pagination
 } from "@mui/material";
 import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -19,6 +19,7 @@ export default function UserTable({ userTableTitle }) {
     const [sortBy, setSortBy] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [total, setTotal] = useState(0);
 
     const [activeUser, setActiveUser] = useState(null);
 
@@ -27,18 +28,26 @@ export default function UserTable({ userTableTitle }) {
             setLoading(true);
             setError("");
             try {
-                const res = await api.get("/users", { params: { limit: 1000 } });
+                const res = await api.get("/users", {
+                    params: {
+                        limit: rowsPerPage,
+                        page: page + 1,
+                        name: filter || undefined
+                    }
+                });
                 const data = res.data?.results ?? res.data ?? [];
                 setRows(Array.isArray(data) ? data : []);
+                setTotal(res.data?.count ?? data.length);
             } catch (err) {
                 setError(err?.response?.data?.error || "Failed to load users");
                 setRows([]);
+                setTotal(0);
             } finally {
                 setLoading(false);
             }
         };
         fetchUsers();
-    }, []);
+    }, [page, rowsPerPage, filter]);
   
     const handleChangePage = (_, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (e) => {
@@ -165,7 +174,6 @@ export default function UserTable({ userTableTitle }) {
         
                     <TableBody>
                     {(loading ? [] : processedRows)
-                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row) => (
                         <TableRow key={row.id}>
                             <TableCell>{row.id || "---"}</TableCell>
@@ -189,7 +197,12 @@ export default function UserTable({ userTableTitle }) {
                         ))}
                     {loading && (
                         <TableRow>
-                            <TableCell colSpan={10} className={styles.userTableEmpty}>Loading...</TableCell>
+                            <TableCell colSpan={10} className={styles.userTableEmpty}>
+                                <div className={styles.tableLoading}>
+                                    <div className={styles.spinner} />
+                                    <span>Loading users...</span>
+                                </div>
+                            </TableCell>
                         </TableRow>
                     )}
                     {!loading && processedRows.length === 0 && (
@@ -201,14 +214,31 @@ export default function UserTable({ userTableTitle }) {
                 </Table>
                 </TableContainer>
         
-                <TablePagination
-                    component="div"
-                    count={processedRows.length}
-                    page={page}
-                    rowsPerPage={rowsPerPage}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
+                <Box className={styles.tablePaginationBar}>
+                    <Pagination
+                        count={Math.max(1, Math.ceil(total / rowsPerPage))}
+                        page={page + 1}
+                        onChange={(_, val) => handleChangePage(null, val - 1)}
+                        siblingCount={1}
+                        boundaryCount={1}
+                        disabled={loading}
+                        className={styles.pagination}
+                        classes={{ ul: styles.paginationList }}
+                    />
+                    <FormControl size="small" sx={{ minWidth: 120 }} className={styles.rowsSelect}>
+                        <InputLabel id="user-rows-label">Rows</InputLabel>
+                        <Select
+                            labelId="user-rows-label"
+                            value={rowsPerPage}
+                            label="Rows"
+                            onChange={handleChangeRowsPerPage}
+                        >
+                            {[5, 10, 25, 50].map(opt => (
+                                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Box>
             </Paper>
         </div>
         {activeUser && (

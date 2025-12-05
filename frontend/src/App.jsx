@@ -17,10 +17,12 @@ import AllPromotions from './pages/AllPromotions';
 import AllUsers from './pages/AllUsers';
 import ManageEvent from './pages/ManageEvent';
 import ProfileShell from "./components/Profile/ProfileShell.jsx";
+import MyEvents from "./pages/MyEvents.jsx";
+import UserSearch from './pages/UserSearch';
 
 function RootRedirect() {
   const token = localStorage.getItem("token");
-  return token ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />;
+  return token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
 }
 
 function App() {
@@ -32,22 +34,25 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/set-password" element={<SetPassword />} />
-          <Route path="/profile/:utorid/home" element={<Navigate to="/home" replace />} />
-          <Route path="/profile/:utorid/account" element={<Profile />} />
-          <Route path="/profile/:utorid/transfer-points" element={<Profile />} />
-          <Route path="/profile/:utorid/redeem-points" element={<Profile />} />
-          <Route path="/profile/:utorid/past-transactions" element={<Profile />} />
-          <Route path="/all-users" element={<ProfileShell><AllUsers /></ProfileShell>} />
-          <Route path="/all-promotions" element={<ProfileShell><AllPromotions /></ProfileShell>} />
-          <Route path="/available-promotions" element={<ProfileShell><AvailablePromotions /></ProfileShell>} />
-          <Route path="/all-events" element={<ProfileShell><AllEvents /></ProfileShell>} />
-          <Route path="/manage-event/:eventId" element={<ProfileShell><ManageEvent /></ProfileShell>} />
-          <Route path="/published-events" element={<ProfileShell><PublishedEvents /></ProfileShell>} />
-          <Route path="/home" element={<ProfileShell><Dashboard /></ProfileShell>} />
-          <Route path="/redeem-points" element={<ProfileShell><RedeemPoints /></ProfileShell>} />
-          <Route path="/all-transactions" element={<ProfileShell><AllTransactions /></ProfileShell>} />
-          <Route path="/past-transactions" element={<ProfileShell><PastTransactions /></ProfileShell>} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:utorid/dashboard" element={<Navigate to="/dashboard" replace />} />
+
+          <Route element={<ProfileShell />}>
+            <Route path="/transfer-points" element={<Profile />} />
+            <Route path="/redeem-points" element={<Profile />} />
+            <Route path="/past-transactions" element={<Profile />} />
+            <Route path="/all-users" element={<AllUsers />} />
+            <Route path="/all-promotions" element={<AllPromotions />} />
+            <Route path="/available-promotions" element={<AvailablePromotions />} />
+            <Route path="/all-events" element={<AllEvents />} />
+            <Route path="/manage-event/:eventId" element={<ManageEvent />} />
+            <Route path="/published-events" element={<PublishedEvents />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/redeem-points" element={<RedeemPoints />} />
+            <Route path="/all-transactions" element={<AllTransactions />} />
+            <Route path="/past-transactions" element={<PastTransactions />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/user-search" element={<UserSearch />} />
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>

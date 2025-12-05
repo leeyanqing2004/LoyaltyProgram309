@@ -13,8 +13,8 @@ const { lte } = require('zod/v4');
 // TODO: test the events/transaction
 
 //router.get('/users', clearanceRequired('regular'), (req, res) => {
-    //      ...
-    // }
+//      ...
+// }
 
 // helper function to check clearance levels, outside of middleware
 function roleInClearance(role, clearanceRequired) {
@@ -26,7 +26,7 @@ function roleInClearance(role, clearanceRequired) {
 
     const curRoleLevel = clearanceLevelsByIndex.indexOf(role)
     const requiredLevel = clearanceLevelsByIndex.indexOf(clearanceRequired)
-        
+
     if (curRoleLevel < 0 || requiredLevel < 0) {
         return false;
     }
@@ -114,7 +114,7 @@ async function purchaseEarned(spent, promotionIds) {
 
 router.all("/", async (req, res) => {
     if (req.method !== "POST" && req.method !== "GET") {
-        return res.status(405).send({error: "Method Not Allowed"});
+        return res.status(405).send({ error: "Method Not Allowed" });
     }
 
     const role = req.auth.role
@@ -127,10 +127,10 @@ router.all("/", async (req, res) => {
     });
 
     if (!role) {
-        return res.status(401).json({error: 'Unauthorized'})
+        return res.status(401).json({ error: 'Unauthorized' })
     }
     if (!user) {
-        return res.status(401).json({error: 'Unauthorized'})
+        return res.status(401).json({ error: 'Unauthorized' })
     }
 
     const keys = Object.keys(req.body);
@@ -155,16 +155,16 @@ router.all("/", async (req, res) => {
                 return res.status(400).json({ error: `Unknown field(s): ${unknownKeys.join(', ')}` });
             }
 
-            const { utorid, spent, promotionIds , remark } = req.body;
+            const { utorid, spent, promotionIds, remark } = req.body;
 
-            if (!checkTypes([utorid, spent, promotionIds, remark], 
-                        ['string', 'number', 'array', 'string'],
-                        [true, true, false, false])) {
-                            return res.status(400).json({ error: "Faulty payload field type." });
+            if (!checkTypes([utorid, spent, promotionIds, remark],
+                ['string', 'number', 'array', 'string'],
+                [true, true, false, false])) {
+                return res.status(400).json({ error: "Faulty payload field type." });
             }
-            
+
             if (!roleInClearance(role, 'cashier')) {
-                return res.status(403).json({error: 'Forbidden'})
+                return res.status(403).json({ error: 'Forbidden' })
             }
 
             const customerUser = await prisma.user.findUnique({
@@ -172,7 +172,7 @@ router.all("/", async (req, res) => {
                     utorid: utorid
                 }
             });
-    
+
             if (!customerUser) {
                 return res.status(404).json({ error: "Customer of Purchase not Found" });
             }
@@ -187,7 +187,7 @@ router.all("/", async (req, res) => {
                         id: { in: promotionIds }
                     }
                 });
-            
+
                 if (promotions.length !== promotionIds.length) {
                     return res.status(404).json({ error: "One or more promotionIds not found" });
                 }
@@ -199,19 +199,8 @@ router.all("/", async (req, res) => {
                 }
             }
 
-            const promotions = await prisma.promotion.findMany({
-                where: {
-                    id: { in: promotionIds }
-                }
-            });
-
-            const storedPromotionIds = [];
-
-            for (const promotion of promotions) {
-                if (promotion.type === 'one-time') {
-                    storedPromotionIds.push(promotion.id)
-                }
-            }
+            // Persist all selected promotions to the transaction
+            const storedPromotionIds = Array.isArray(promotionIds) ? promotionIds : [];
 
             let earned = 0;
             let suspicious = false;
@@ -241,9 +230,9 @@ router.all("/", async (req, res) => {
                     amount: amount,
                     promotions: storedPromotionIds?.length
                         ? {
-                          create: storedPromotionIds.map((storedPromotionIds) => ({
-                            promotion: { connect: { id: storedPromotionIds } }
-                          }))
+                            create: storedPromotionIds.map((promotionId) => ({
+                                promotion: { connect: { id: promotionId } }
+                            }))
                         }
                         : undefined
                 },
@@ -288,14 +277,14 @@ router.all("/", async (req, res) => {
 
             const { utorid, type, amount, relatedId, promotionIds, remark } = req.body;
 
-            if (!checkTypes([utorid, type, amount, relatedId, promotionIds, remark], 
-                            ['string', 'string', 'number', 'number', 'array', 'string'],
-                            [true, true, true, true, false, false])) {
-                            return res.status(400).json({ error: "Faulty payload field type." });
+            if (!checkTypes([utorid, type, amount, relatedId, promotionIds, remark],
+                ['string', 'string', 'number', 'number', 'array', 'string'],
+                [true, true, true, true, false, false])) {
+                return res.status(400).json({ error: "Faulty payload field type." });
             }
-            
+
             if (!roleInClearance(role, 'manager')) {
-                return res.status(403).json({error: 'Forbidden'})
+                return res.status(403).json({ error: 'Forbidden' })
             }
             const customerUser = await prisma.user.findUnique({
                 where: {
@@ -340,9 +329,9 @@ router.all("/", async (req, res) => {
                     remark: remark ?? "",
                     promotions: promotionIds?.length
                         ? {
-                          create: promotionIds.map((promotionId) => ({
-                            promotion: { connect: { id: promotionId } }
-                          }))
+                            create: promotionIds.map((promotionId) => ({
+                                promotion: { connect: { id: promotionId } }
+                            }))
                         }
                         : undefined
                 },
@@ -366,7 +355,7 @@ router.all("/", async (req, res) => {
                 const newAmount = relatedTransaction.amount + amount;
                 const newEarned = relatedTransaction.earned + amount;
                 if (!relatedTransaction.suspicious && recipientId) {
-                    pointDelta = amount;
+                    pointDelta = -amount;
                 }
                 await prisma.transaction.update({
                     where: { id: parseInt(relatedId) },
@@ -375,10 +364,10 @@ router.all("/", async (req, res) => {
                         earned: newEarned,
                         promotions: promotionIds?.length
                             ? {
-                                  create: promotionIds.map((promotionId) => ({
-                                      promotion: { connect: { id: promotionId } }
-                                  }))
-                              }
+                                create: promotionIds.map((promotionId) => ({
+                                    promotion: { connect: { id: promotionId } }
+                                }))
+                            }
                             : undefined
                     }
                 });
@@ -391,23 +380,27 @@ router.all("/", async (req, res) => {
                         amount: newAmount,
                         promotions: promotionIds?.length
                             ? {
-                                  create: promotionIds.map((promotionId) => ({
-                                      promotion: { connect: { id: promotionId } }
-                                  }))
-                              }
+                                create: promotionIds.map((promotionId) => ({
+                                    promotion: { connect: { id: promotionId } }
+                                }))
+                            }
                             : undefined
                     }
                 });
+            } else if (relatedTransaction.type === 'redemption') {
+                pointDelta = -amount;
+            } else if (relatedTransaction.type === 'transfer') {
+                pointDelta = -amount;
             } else { // TODO: IMPLEMENT FOR TRANSFER & REDEMPTION
                 await prisma.transaction.update({
                     where: { id: parseInt(relatedId) },
                     data: {
                         promotions: promotionIds?.length
                             ? {
-                                  create: promotionIds.map((promotionId) => ({
-                                      promotion: { connect: { id: promotionId } }
-                                  }))
-                              }
+                                create: promotionIds.map((promotionId) => ({
+                                    promotion: { connect: { id: promotionId } }
+                                }))
+                            }
                             : undefined
                     }
                 });
@@ -415,6 +408,9 @@ router.all("/", async (req, res) => {
 
             // apply point delta after transaction adjustment
             if (recipientId && pointDelta !== 0) {
+                if (recipientPoints + pointDelta < 0) {
+                    return res.status(400).json({ error: "Resulting points would be negative; adjustment denied" });
+                }
                 await prisma.user.update({
                     where: { id: recipientId },
                     data: {
@@ -429,7 +425,7 @@ router.all("/", async (req, res) => {
                 amount: newAdjustment.amount,
                 type: newAdjustment.type,
                 relatedId: newAdjustment.relatedId,
-                remark: newAdjustment.remark, 
+                remark: newAdjustment.remark,
                 promotionIds: newAdjustment.promotions.map(p => p.promotionId),
                 createdBy: newAdjustment.createdBy.utorid
             });
@@ -469,14 +465,14 @@ router.all("/", async (req, res) => {
             limit = limit.length ? Number(limit) : undefined;
         }
 
-        if (!checkTypes([name, createdBy, suspicious , promotionId, type, relatedId, amount, operator, page, limit], 
-                    ['string', 'string', 'boolean', 'number', 'string', 'number', 'number', 'string', 'number', 'number'],
-                    [false, false, false, false, false, false, false, false, false, false])) {
-                        return res.status(400).json({ error: "Faulty payload field type." });
+        if (!checkTypes([name, createdBy, suspicious, promotionId, type, relatedId, amount, operator, page, limit],
+            ['string', 'string', 'boolean', 'number', 'string', 'number', 'number', 'string', 'number', 'number'],
+            [false, false, false, false, false, false, false, false, false, false])) {
+            return res.status(400).json({ error: "Faulty payload field type." });
         }
-        
+
         if (!roleInClearance(role, 'manager')) {
-            return res.status(403).json({error: 'Forbidden'})
+            return res.status(403).json({ error: 'Forbidden' })
         }
 
         const where = {};
@@ -542,7 +538,7 @@ router.all("/", async (req, res) => {
                 where,
                 skip,
                 take,
-                orderBy: { id : 'asc' },
+                orderBy: { id: 'asc' },
                 select: {
                     id: true,
                     utorid: true,
@@ -550,7 +546,7 @@ router.all("/", async (req, res) => {
                     type: true,
                     spent: true,
                     promotions: { select: { promotionId: true } },
-                    suspicious: true, 
+                    suspicious: true,
                     remark: true,
                     createdBy: { select: { utorid: true } },
                     relatedId: true, // do we need to exclude this if its undefined?
@@ -558,7 +554,7 @@ router.all("/", async (req, res) => {
                 }
             })
         ]);
-        
+
         for (const field of results) {
             field.promotionIds = field.promotions.map(p => p.promotionId);
             delete field.promotions;
@@ -582,7 +578,7 @@ router.all("/", async (req, res) => {
 
 router.all("/:transactionId", clearanceRequired('manager'), async (req, res) => {
     if (req.method !== "GET") {
-        return res.status(405).send({error: "Method Not Allowed"});
+        return res.status(405).send({ error: "Method Not Allowed" });
     }
     const keys = Object.keys(req.body);
     const allowedKeys = [];
@@ -593,13 +589,13 @@ router.all("/:transactionId", clearanceRequired('manager'), async (req, res) => 
 
     const transactionId = req.params.transactionId
 
-    const transaction = await prisma.transaction.findUnique({where: { id: parseInt(transactionId) }})
+    const transaction = await prisma.transaction.findUnique({ where: { id: parseInt(transactionId) } })
     if (!transaction) {
         return res.status(404).send({ error: "Transaction not found" });
     }
 
     results = await prisma.transaction.findUnique({
-        where : { id: parseInt(transactionId) },
+        where: { id: parseInt(transactionId) },
         select: {
             id: true,
             utorid: true,
@@ -607,7 +603,7 @@ router.all("/:transactionId", clearanceRequired('manager'), async (req, res) => 
             spent: true,
             amount: true,
             promotions: { select: { promotionId: true } },
-            suspicious: true, 
+            suspicious: true,
             remark: true,
             createdBy: { select: { utorid: true } },
             relatedId: true, // do we need to exclude this if its undefined?
@@ -635,12 +631,12 @@ router.all("/:transactionId", clearanceRequired('manager'), async (req, res) => 
 
 router.all("/:transactionId/suspicious", clearanceRequired('manager'), async (req, res) => {
     if (req.method !== "PATCH") {
-        return res.status(405).send({error: "Method Not Allowed"});
+        return res.status(405).send({ error: "Method Not Allowed" });
     }
 
     const transactionId = req.params.transactionId
 
-    const transaction = await prisma.transaction.findUnique({where: { id: parseInt(transactionId) }})
+    const transaction = await prisma.transaction.findUnique({ where: { id: parseInt(transactionId) } })
     if (!transaction) {
         return res.status(404).send({ error: "Transaction not found" });
     }
@@ -655,13 +651,13 @@ router.all("/:transactionId/suspicious", clearanceRequired('manager'), async (re
 
     const { suspicious } = req.body;
 
-    if (!checkTypes([suspicious], 
-                    ['boolean'],
-                    [true])) {
-                    return res.status(400).json({ error: "Faulty payload field type." });
+    if (!checkTypes([suspicious],
+        ['boolean'],
+        [true])) {
+        return res.status(400).json({ error: "Faulty payload field type." });
     }
 
-    const user = await prisma.user.findUnique({where: { utorid: transaction.utorid }})
+    const user = await prisma.user.findUnique({ where: { utorid: transaction.utorid } })
     if (!user) {
         return res.status(404).send({ error: "User of transaction not found" });
     }
@@ -716,7 +712,7 @@ router.all("/:transactionId/suspicious", clearanceRequired('manager'), async (re
     }
 
     results = await prisma.transaction.findUnique({
-        where : { id: parseInt(transactionId) },
+        where: { id: parseInt(transactionId) },
         select: {
             id: true,
             utorid: true,
@@ -724,7 +720,7 @@ router.all("/:transactionId/suspicious", clearanceRequired('manager'), async (re
             spent: true,
             amount: true,
             promotions: { select: { promotionId: true } },
-            suspicious: true, 
+            suspicious: true,
             remark: true,
             createdBy: { select: { utorid: true } },
             relatedId: true, // do we need to exclude this if its undefined?
@@ -753,12 +749,12 @@ router.all("/:transactionId/suspicious", clearanceRequired('manager'), async (re
 
 router.all("/:transactionId/processed", clearanceRequired('cashier'), async (req, res) => {
     if (req.method !== "PATCH") {
-        return res.status(405).send({error: "Method Not Allowed"});
+        return res.status(405).send({ error: "Method Not Allowed" });
     }
 
     const transactionId = req.params.transactionId
 
-    let transaction = await prisma.transaction.findUnique({where: { id: parseInt(transactionId) }})
+    let transaction = await prisma.transaction.findUnique({ where: { id: parseInt(transactionId) } })
     if (!transaction) {
         return res.status(404).send({ error: "Transaction not found" });
     }
@@ -779,10 +775,10 @@ router.all("/:transactionId/processed", clearanceRequired('cashier'), async (req
 
     const { processed } = req.body;
 
-    if (!checkTypes([processed], 
-                    ['boolean'],
-                    [true])) {
-                    return res.status(400).json({ error: "Faulty payload field type." });
+    if (!checkTypes([processed],
+        ['boolean'],
+        [true])) {
+        return res.status(400).json({ error: "Faulty payload field type." });
     }
 
     if (!processed) {
@@ -796,12 +792,12 @@ router.all("/:transactionId/processed", clearanceRequired('cashier'), async (req
         }
     });
     if (!user) {
-        return res.status(401).json({error: 'Unauthorized'})
+        return res.status(401).json({ error: 'Unauthorized' })
     }
 
     // we will assume that the cashier will deduct money from a current purchase based on the redemption.
     // but we do not need to write any code that actually deducts money.
-    
+
     await prisma.transaction.update({
         where: {
             id: parseInt(transactionId),
@@ -825,15 +821,15 @@ router.all("/:transactionId/processed", clearanceRequired('cashier'), async (req
             points: new_points,
         }
     })
-    
+
     results = await prisma.transaction.findUnique({
-        where : { id: parseInt(transactionId) },
+        where: { id: parseInt(transactionId) },
         select: {
             id: true,
             utorid: true,
             type: true,
             processedBy: { select: { utorid: true } },
-            redeemed: true, 
+            redeemed: true,
             remark: true,
             createdBy: { select: { utorid: true } },
         }
@@ -843,6 +839,25 @@ router.all("/:transactionId/processed", clearanceRequired('cashier'), async (req
     results.createdBy = results.createdBy?.utorid ?? null;
 
     res.status(200).json(results);
+});
+
+// Lightweight lookup for cashiers to verify a redemption before processing
+router.get("/:transactionId/redeemable", clearanceRequired('cashier'), async (req, res) => {
+    const transactionId = req.params.transactionId;
+    const tx = await prisma.transaction.findUnique({ where: { id: parseInt(transactionId) } });
+    if (!tx) {
+        return res.status(404).send({ error: "Transaction not found!" });
+    }
+    if (tx.type !== 'redemption') {
+        return res.status(400).send({ error: "Transaction is not of type 'redemption'" });
+    }
+    return res.status(200).json({
+        id: tx.id,
+        utorid: tx.utorid,
+        pointsToRedeem: tx.amount,
+        remark: tx.remark ?? null,
+        processed: !!tx.processed,
+    });
 });
 
 module.exports = router;

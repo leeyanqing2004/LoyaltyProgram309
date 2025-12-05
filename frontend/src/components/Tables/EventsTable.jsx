@@ -1,13 +1,15 @@
+import { useState, useEffect, useCallback } from "react";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead,
-    TableRow, Paper, TablePagination
+    TableRow, Paper, TablePagination, TextField, FormControl,
+    InputLabel, Select, MenuItem, Box, Pagination
 } from "@mui/material";
-import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
-import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./EventsTable.module.css";
+import "../Popups/DetailsPopup.css";
+import EventDetailsPopup from "../Popups/EventDetailsPopup";;
 
 const formatDateTime = (value) => {
     if (!value) return "—";
@@ -16,21 +18,7 @@ const formatDateTime = (value) => {
     return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 };
   
-export default function EventsTable({ eventsTableTitle, managerViewBool }) {
-    // this is make a fake table with 50 rows, just to see
-    // const rows = Array.from({ length: 50 }, (_, i) => ({
-    //     id: i + 1,
-    //     name: "[Event Name]",
-    //     location: "[Event Location]",
-    //     startTime: "[Start Time]",
-    //     endTime: "[End Time]",
-    //     capacity: "[e.g. 200]",
-    //     numGuests: "[e.g. 7]",
-    //     pointsRemain: "[e.g. 500]",
-    //     pointsAwarded: "[e.g. 10]",
-    //     published: "[e.g. false]"
-    // }));
-  
+export default function EventsTable({ eventsTableTitle, managerViewBool, showRegisteredOnly = false }) {
     const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -46,6 +34,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
     const [toast, setToast] = useState(null);
     const [organizerEvents, setOrganizerEvents] = useState({});
     const [guestStatusChecked, setGuestStatusChecked] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // Check for success message from navigation state
     const updateOrganizerStatus = useCallback(async (eventList) => {
@@ -78,8 +67,11 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
 
     const updateGuestStatus = useCallback(async (eventList) => {
         if (!user || !Array.isArray(eventList) || !eventList.length) {
+            setLoading(false);
             return;
         }
+
+        setLoading(true);
         try {
             const statusPairs = await Promise.all(
                 eventList.map(async (event) => {
@@ -99,9 +91,10 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                 if (isGuest) map[id] = true;
             });
             setRsvps(map);
-            setGuestStatusChecked(true);
         } catch (err) {
             console.error("Failed to check RSVP status", err);
+        } finally {
+            setLoading(false);
         }
     }, [user]);
 
@@ -120,12 +113,21 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
     }, [toast]);
 
     useEffect(() => {
+        if (showRegisteredOnly) {
+            setPage(0);
+        }
+    }, [showRegisteredOnly]);
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [rsvpedEventIds, setRsvpedEventIds] = useState(new Set());
+
+    useEffect(() => {
         const fetchEvents = async () => {
+            setLoading(true);
             try {
                 const params = {
                     page: page + 1,
                     limit: rowsPerPage,
-                }
+                };
 
                 if (filter) {
                     params.name = filter;
@@ -144,14 +146,22 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                 // Refresh organizer and RSVP status for current page
                 updateOrganizerStatus(events);
                 updateGuestStatus(events);
+
+                // Fetch RSVP status for all events in one call
+                const rsvpRes = await api.get("/users/me/guests");
+                const eventIds = rsvpRes.data.eventIds || [];
+                setRsvpedEventIds(new Set(eventIds));
             } catch (err) {
                 console.error(err);
                 setRows([]);
                 setTotalCount(0);
+                setRsvpedEventIds(new Set());
+            } finally {
+                setLoading(false);
             }
         };
         fetchEvents();
-    }, [page, rowsPerPage, filter, managerViewBool, updateOrganizerStatus, updateGuestStatus]);
+    }, [page, rowsPerPage, filter, managerViewBool, showRegisteredOnly, updateOrganizerStatus, updateGuestStatus]);
     const handleChangePage = (_, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (e) => {
         setRowsPerPage(parseInt(e.target.value, 10));
@@ -183,6 +193,11 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                 // Un-RSVP: DELETE request
                 await api.delete(`/events/${eventId}/guests/me`);
                 setRsvps((prev) => ({ ...prev, [eventId]: false }));
+                setRsvpedEventIds((prev) => {
+                    const next = new Set(prev);
+                    next.delete(eventId);
+                    return next;
+                });
                 setRows((prevRows) =>
                     prevRows.map((r) =>
                         r.id === eventId ? { ...r, numGuests: Math.max(0, r.numGuests - 1) } : r
@@ -193,6 +208,11 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                 // RSVP: POST request
                 const response = await api.post(`/events/${eventId}/guests/me`);
                 setRsvps((prev) => ({ ...prev, [eventId]: true }));
+                setRsvpedEventIds((prev) => {
+                    const next = new Set(prev);
+                    next.add(eventId);
+                    return next;
+                });
                 setRows((prevRows) =>
                     prevRows.map((r) =>
                         r.id === eventId
@@ -222,7 +242,18 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
         }
     };
 
-    const processedRows = rows
+    const handleMoreDetails = (event) => {
+        setSelectedEvent(event); // Set the selected event for the popup
+    };
+
+    const handleClosePopup = () => {
+        setSelectedEvent(null); // Close the popup
+    };
+
+    // Note: unified RSVP toggle via handleRsvp(event). No duplicate handlers.
+
+    const filteredRows = (showRegisteredOnly && !loading ? rows.filter(row => Boolean(rsvps[row.id])) : rows);
+    const processedRows = filteredRows
     // SORT
     .sort((a, b) => {
         if (!sortBy) {
@@ -244,7 +275,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
         <div className={styles.eventsTableContainer}>
             <div className={styles.eventsTableTitle}>{eventsTableTitle}</div>
             <Box display="flex" gap={2} mb={2}>
-                {/* Filter Input */}
                 <TextField
                     label="Filter by event name"
                     variant="outlined"
@@ -252,8 +282,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                 />
-
-                {/* Sort Dropdown */}
                 <FormControl size="small">
                     <InputLabel>Sort By</InputLabel>
                     <Select
@@ -266,7 +294,6 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                         <MenuItem value="id">ID</MenuItem>
                         <MenuItem value="earned">Points Earned</MenuItem>
                         <MenuItem value="spent">Points Spent</MenuItem>
-                        <MenuItem value="utorid">UTORid</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
@@ -287,10 +314,10 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                         {managerViewBool && <TableCell>Published</TableCell>}
                         <TableCell></TableCell>
                         <TableCell></TableCell>
-                    </TableRow>
-                    </TableHead>
+                        </TableRow>
+                        </TableHead>
         
-                    <TableBody>
+                        <TableBody>
                     {processedRows
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row) => (
@@ -320,7 +347,14 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                                             </button>
                                         );
                                     }
-                                    return <button className={styles.manageEventBtn}>More Details</button>;
+                                    return (
+                                        <button
+                                            className={styles.moreDetailsBtn}
+                                            onClick={() => handleMoreDetails(row)}
+                                        >
+                                            More Details
+                                        </button>
+                                    );
                                 })()}
                             </TableCell>
                             <TableCell>
@@ -346,25 +380,25 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                                     return (
                                         <button
                                             className={
-                                                isRsvped
-                                                    ? styles.rsvpBtnSecondary
-                                                    : styles.rsvpBtn
+                                                isRsvped ? styles.rsvpBtnSecondary : styles.rsvpBtn
                                             }
                                             onClick={() => handleRsvp(row)}
-                                            disabled={isLoading || !canRsvp}
-                                            title={disabledReason || (isRsvped ? "Click to un-RSVP" : "Click to RSVP")}
+                                            disabled={isLoading || (!isRsvped && !canRsvp)}
+                                            title={
+                                                disabledReason || (isRsvped ? "Click to un-RSVP" : "Click to RSVP")
+                                            }
                                         >
                                             {isLoading
                                                 ? "Loading..."
                                                 : isOrganizerForEvent
-                                                ? "Organizer"
-                                                : isRsvped
-                                                ? "Un-RSVP"
-                                                : isEnded
-                                                ? "Event Ended"
-                                                : isFull && !isRsvped
-                                                ? "RSVP"
-                                                : "RSVP"}
+                                                    ? "Organizer"
+                                                    : isRsvped
+                                                        ? "Un-RSVP"
+                                                        : isEnded
+                                                            ? "Event Ended"
+                                                            : isFull && !isRsvped
+                                                                ? "Event Full"
+                                                                : "RSVP"}
                                         </button>
                                     );
                                 })()}
@@ -372,29 +406,63 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
                             
                         </TableRow>
                         ))}
+                    {loading && (
+                        <TableRow>
+                            <TableCell colSpan={managerViewBool ? 11 : 9}>
+                                <div className={styles.tableLoading}>
+                                    <div className={styles.spinner} />
+                                    <span>Loading events...</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    )}
                     </TableBody>
                 </Table>
                 </TableContainer>
         
-                <TablePagination
-                component="div"
-                count={totalCount}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                />
+                <Box className={styles.tablePaginationBar}>
+                    <Pagination
+                        count={Math.max(1, Math.ceil(totalCount / rowsPerPage))}
+                        page={page + 1}
+                        onChange={(_, val) => handleChangePage(null, val - 1)}
+                        siblingCount={1}
+                        boundaryCount={1}
+                        disabled={false}
+                        className={styles.pagination}
+                        classes={{ ul: styles.paginationList }}
+                    />
+                    <FormControl size="small" sx={{ minWidth: 120 }} className={styles.rowsSelect}>
+                        <InputLabel id="events-rows-label">Rows</InputLabel>
+                        <Select
+                            labelId="events-rows-label"
+                            value={rowsPerPage}
+                            label="Rows"
+                            onChange={handleChangeRowsPerPage}
+                        >
+                            {[5, 10, 25, 50].map(opt => (
+                                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Box>
             </Paper>
             {toast && (
                 <div
-                    className={`${styles.toast} ${
-                        toast.type === "error" ? styles.toastError : styles.toastSuccess
-                    }`}
+                    className={`${styles.toast} ${toast.type === "error" ? styles.toastError : styles.toastSuccess
+                        }`}
                 >
                     {toast.message}
                 </div>
             )}
+            {selectedEvent && (
+                <EventDetailsPopup
+                    event={selectedEvent}
+                    rsvped={rsvpedEventIds.has(selectedEvent.id)}
+                    onClose={handleClosePopup}
+                    onRsvp={() => handleRsvp(selectedEvent)}
+                    onUnRsvp={() => handleRsvp(selectedEvent)}
+                />
+            )}
         </div>
     );
 }
-  
