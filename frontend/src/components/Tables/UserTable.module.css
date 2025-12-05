@@ -48,6 +48,53 @@
     text-align: center !important;
 }
 
+.actionBtn {
+    color: white;
+    background: #2A73B7;
+    border: none;
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-weight: 600;
+    min-width: 120px;
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.actionBtn:hover {
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    background: #1f5a90;
+}
+
+.actionBtnSecondary {
+    color: #2A73B7;
+    background: #e8f0fe;
+    border: none;
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-weight: 600;
+    min-width: 120px;
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.actionBtnSecondary:hover {
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    background: #d9e8ff;
+}
+
+.actionBtn:disabled,
+.actionBtnSecondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.actionBtn:disabled:hover,
+.actionBtnSecondary:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 .tablePaginationBar {
     display: grid;
     grid-template-columns: 1fr auto;

@@ -18,6 +18,7 @@ import AllUsers from './pages/AllUsers';
 import ManageEvent from './pages/ManageEvent';
 import ProfileShell from "./components/Profile/ProfileShell.jsx";
 import MyEvents from "./pages/MyEvents.jsx";
+import UserSearch from './pages/UserSearch';
 
 function RootRedirect() {
   const token = localStorage.getItem("token");
@@ -50,6 +51,7 @@ function App() {
             <Route path="/all-transactions" element={<AllTransactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/user-search" element={<UserSearch />} />
           </Route>
         </Routes>
       </AuthProvider>

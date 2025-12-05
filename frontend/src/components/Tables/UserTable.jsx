@@ -14,7 +14,9 @@ export default function UserTable({ userTableTitle }) {
     const [rows, setRows] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [filter, setFilter] = useState("");
+    const [utoridFilter, setUtoridFilter] = useState("");
+    const [roleFilter, setRoleFilter] = useState("");
+    const [verifiedFilter, setVerifiedFilter] = useState("");
     const [sortBy, setSortBy] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -55,24 +57,40 @@ export default function UserTable({ userTableTitle }) {
     };
 
     const processedRows = rows
-        // SORT (client-side on current page only)
-        .sort((a, b) => {
-            if (!sortBy) {
-                return 0;
-            } else if (sortBy === "id") {
-                return a.id - b.id;
-            } else if (sortBy === "points") {
-                return a.points - b.points;
-            } else if (sortBy === "utorid") {
-                return a.utorid.localeCompare(b.utorid);
-            } else if (sortBy === "role") {
-                return a.role.localeCompare(b.role);
-            } else if (sortBy === "name") {
-                return a.name.localeCompare(b.name);
-            } else {
-                return 0;
-            }
-        });
+    // FILTER
+    .filter((row) =>
+        ((row.name || "").toLowerCase().includes(utoridFilter.toLowerCase()) ||
+        (row.utorid || "").toLowerCase().includes(utoridFilter.toLowerCase())) &&
+        row.role.toLowerCase().includes(roleFilter.toLowerCase()) &&
+        (verifiedFilter === "" ||
+            (verifiedFilter === "yes" && row.verified === true) ||
+            (verifiedFilter === "no" && row.verified === false))
+    )
+    // SORT
+    .sort((a, b) => {
+        if (!sortBy) {
+            return 0;
+        } else if (sortBy === "id") {
+            return a.id - b.id;
+        } else if (sortBy === "points") {
+            return b.points - a.points;
+        } else if (sortBy === "utorid") {
+            return a.utorid.localeCompare(b.utorid);
+        } else if (sortBy === "role") {
+            return a.role.localeCompare(b.role);
+        } else if (sortBy === "name") {
+            return a.name.localeCompare(b.name);
+        } else {
+            return 0;
+        }
+    });
+
+    const formatDate = (value) => {
+        if (!value) return "—";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleDateString();
+    };
   
     return (
         <>
@@ -81,15 +99,45 @@ export default function UserTable({ userTableTitle }) {
             <Box display="flex" gap={2} mb={2}>
                 {/* Filter Input */}
                 <TextField
-                    label="Filter by UTORid"
+                    label="Filter by Utorid"
                     variant="outlined"
                     size="small"
-                    value={filter}
+                    value={utoridFilter}
                     onChange={(e) => {
-                        setFilter(e.target.value);
+                        setUtoridFilter(e.target.value);
                         setPage(0);
                     }}
                 />
+
+                <FormControl size="small">
+                    <InputLabel>Filter by Role</InputLabel>
+                    <Select
+                        value={roleFilter}
+                        label="Role"
+                        onChange={(e) => setRoleFilter(e.target.value)}
+                        style={{ minWidth: 150 }}
+                    >
+                        <MenuItem value="">All</MenuItem>
+                        <MenuItem value="regular">Regular</MenuItem>
+                        <MenuItem value="cashier">Cashier</MenuItem>
+                        <MenuItem value="manager">Manager</MenuItem>
+                        <MenuItem value="superuser">Superuser</MenuItem>
+                    </Select>
+                </FormControl>
+
+                <FormControl size="small">
+                    <InputLabel>Verified?</InputLabel>
+                    <Select
+                        value={verifiedFilter}
+                        label="Verified?"
+                        onChange={(e) => setVerifiedFilter(e.target.value)}
+                        style={{ minWidth: 150 }}
+                    >
+                        <MenuItem value="">All</MenuItem>
+                        <MenuItem value="yes">Yes</MenuItem>
+                        <MenuItem value="no">No</MenuItem>
+                    </Select>
+                </FormControl>
 
                 {/* Sort Dropdown */}
                 <FormControl size="small">
@@ -102,12 +150,10 @@ export default function UserTable({ userTableTitle }) {
                     >
                         <MenuItem value="">None</MenuItem>
                         <MenuItem value="id">ID</MenuItem>
-                        <MenuItem value="name">Name</MenuItem>
-                        <MenuItem value="utorid">UTORid</MenuItem>
-                        <MenuItem value="role">Role</MenuItem>
                         <MenuItem value="points">Points</MenuItem>
                     </Select>
                 </FormControl>
+                
             </Box>
             <Paper>
                 <TableContainer>
@@ -116,7 +162,7 @@ export default function UserTable({ userTableTitle }) {
                     <TableRow>
                         <TableCell>ID</TableCell>
                         <TableCell>Role</TableCell>
-                        <TableCell>Name</TableCell>
+                        <TableCell>Utorid</TableCell>
                         <TableCell>Email</TableCell>
                         <TableCell>Birthday</TableCell>
                         <TableCell>Points</TableCell>

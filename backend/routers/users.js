@@ -3,6 +3,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { v4: uuidv4 } = require('uuid');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 const clearanceRequired = require('../middleware/clearance');
@@ -152,9 +153,9 @@ router.post('/', clearanceRequired('cashier'), async (req, res) => {
 /*
  * GET /users
  * Retrieve a list of users
- * Clearance: Manager or higher
+ * Clearance: Cashier or higher
  */
-router.get('/', clearanceRequired('manager'), async (req, res) => {
+router.get('/', clearanceRequired('cashier'), async (req, res) => {
     console.log("Running GET /users");
     const { name, role, verified, activated, page = "1", limit = "10" } = req.query;
 
@@ -1012,5 +1013,34 @@ function isValidBirthday(date) {
     const d = new Date(Date.UTC(year, month - 1, day));
     return d.getUTCFullYear() === year && d.getUTCMonth() === month - 1 && d.getUTCDate() === day;
 }
+
+/**
+ * GET /users/me/guests
+ * Returns all event IDs the current user is a guest of
+ * Clearance: Regular or higher
+ */
+router.get('/me/guests', clearanceRequired('regular'), async (req, res) => {
+    const authHdr = req.headers.authorization;
+    if (!authHdr) return res.status(401).json({ error: "Unauthorized" });
+
+    const token = authHdr.split(' ')[1];
+    let decoded;
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { utorid: decoded.utorid },
+        include: { guest: true }
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // user.guest is an array of EventGuest objects
+    const eventIds = user.guest.map(g => g.eventId);
+
+    return res.json({ eventIds });
+});
 
 module.exports = router;
