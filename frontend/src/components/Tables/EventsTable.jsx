@@ -5,8 +5,9 @@ import {
 import { TextField, FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
+import { useViewRole } from "../../contexts/ViewRoleContext";
+import api from "../../api/api";
 import styles from "./EventsTable.module.css";
 
 const formatDateTime = (value) => {
@@ -18,9 +19,10 @@ const formatDateTime = (value) => {
   
 export default function EventsTable({ eventsTableTitle, managerViewBool, showRegisteredOnly = false }) {
     const { user } = useAuth();
+    const { viewRole } = useViewRole();
     const navigate = useNavigate();
     const location = useLocation();
-    const isManagerOrSuperuser = user?.role === "manager" || user?.role === "superuser";
+    const isManagerOrSuperuser = viewRole === "manager" || viewRole === "superuser";
     const [rows, setRows] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
     const [page, setPage] = useState(0);

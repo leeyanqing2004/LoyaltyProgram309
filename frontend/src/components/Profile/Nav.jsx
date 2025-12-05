@@ -10,7 +10,8 @@ function Nav({ id }) {
     const location = useLocation();
     const path = location.pathname.toLowerCase();
     const isManagerOrHigher = user?.role === "manager" || user?.role === "superuser";
-    const eventsPath = isManagerOrHigher ? "/all-events" : "/published-events";
+    const isViewRoleManagerOrHigher = viewRole === "manager" || viewRole === "superuser";
+    const eventsPath = isViewRoleManagerOrHigher ? "/all-events" : "/published-events";
 
     const isEvents = path.startsWith("/published-events") || path.startsWith("/all-events");
     const profilePath = user ? "/profile" : "/login";
@@ -35,12 +36,12 @@ function Nav({ id }) {
                     <li className={styles.navListItem}>
                         <Link className={`${styles.navListItemLink} ${isEvents ? styles.active : ""}`} to={eventsPath}>Events</Link>
                     </li>
-                    {isManagerOrHigher && (
+                    {isViewRoleManagerOrHigher && (
                         <li className={styles.navListItem}>
                             <Link className={`${styles.navListItemLink} ${isAllUsers ? styles.active : ""}`} to="/all-users">Users</Link>
                         </li>
                     )}
-                    {isManagerOrHigher && (
+                    {isViewRoleManagerOrHigher && (
                         <li className={styles.navListItem}>
                             <Link className={`${styles.navListItemLink} ${isAllTransactions ? styles.active : ""}`} to="/all-transactions">Transactions</Link>
                         </li>
@@ -57,11 +58,12 @@ function Nav({ id }) {
                         <FormControl size="small">
                             <InputLabel>View As</InputLabel>
                             <Select
-                                value={viewRole || "default"}
+                                value={viewRole}
                                 label="View as"
                                 onChange={handleViewRoleChange}
                             >
-                                <MenuItem value="default">Current Role</MenuItem>
+                                <MenuItem value="superuser">Superuser</MenuItem>
+                                <MenuItem value="manager">Manager</MenuItem>
                                 <MenuItem value="cashier">Cashier</MenuItem>
                                 <MenuItem value="regular">Regular</MenuItem>
                             </Select>

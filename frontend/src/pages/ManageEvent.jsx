@@ -1,17 +1,19 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useViewRole } from "../contexts/ViewRoleContext";
 import api from "../api/api";
 import styles from "./ManageEvent.module.css";
-import { useAuth } from "../contexts/AuthContext";
 import NewGuestPopup from "../components/Popups/NewGuestPopup";
 import NewOrganizerPopup from "../components/Popups/NewOrganizerPopup";
 import ConfirmDeletePopup from "../components/Popups/ConfirmDeletePopup";
 
 function ManageEvent() {
     const { eventId } = useParams();
-    const navigate = useNavigate();
     const { user } = useAuth();
-    const isManagerOrSuperuser = user?.role === "manager" || user?.role === "superuser";
+    const { viewRole } = useViewRole();
+    const navigate = useNavigate();
+    const isManagerOrSuperuser = viewRole === "manager" || viewRole === "superuser";
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [deleting, setDeleting] = useState(false);

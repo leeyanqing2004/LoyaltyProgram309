@@ -1,10 +1,11 @@
 import { AvailablePointsDisplay, StartTransactionQR } from "../components/Dashboard/DashboardTopSection";
-import styles from "./Dashboard.module.css";
-import TransactionTable from "../components/Tables/TransactionTable";
 import { getRecentTransactions } from "../api/getTransactionsApi";
 import { getMyPoints } from "../api/pointsAndQrApi.js";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useViewRole } from "../contexts/ViewRoleContext";
+import styles from "./Dashboard.module.css";
+import TransactionTable from "../components/Tables/TransactionTable";
 import TransferPointsPopup from "../components/TransferPoints";
 import RedeemPointsPopup from "../components/Popups/RedeemPointsPopup";
 
@@ -14,6 +15,7 @@ import RedeemPointsPopup from "../components/Popups/RedeemPointsPopup";
 function Dashboard() {
 
     const { user } = useAuth();
+    const { viewRole } = useViewRole();
     // const user = "cashier"; // FOR TESTING ONLY
 
     const [recentTransactions, setRecentTransactions] = useState([]);
@@ -54,7 +56,7 @@ function Dashboard() {
                 </div>
 
                 {/*{user?.role === "cashier" && ( */}
-                {user === "cashier" && (
+                {viewRole === "cashier" && (
                     <div className={styles.cashierButtonContainer}>
                         <div className={styles.cashierButton}>
                             <button>+ Register New User</button>

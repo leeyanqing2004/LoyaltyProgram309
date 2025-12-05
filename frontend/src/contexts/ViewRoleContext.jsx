@@ -1,10 +1,20 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 
 const ViewRoleContext = createContext(null);
 
 export const ViewRoleProvider = ({ children }) => {
-    const [viewRole, setViewRole] = useState(null);
+    const { user } = useAuth();
+    console.log(user?.role);
+    const [viewRole, setViewRole] = useState(user?.role || "");
+
+    useEffect(() => {
+        if (user?.role) {
+            setViewRole(user?.role);
+        } else {
+            setViewRole("");
+        }
+    }, [user?.role]);
 
     return (
         <ViewRoleContext.Provider value={{ viewRole, setViewRole }}>
@@ -19,9 +29,8 @@ export const getViewRole = () => {
 
     if (viewRole) {
         return viewRole;
-    } else {
-        return user ? user.role : null;
     }
+    return user?.role;
 };
 
 export const useViewRole = () => {
