@@ -26,12 +26,12 @@ function Dashboard() {
     const [count, setCount] = useState(0);
     const [recentLoading, setRecentLoading] = useState(false);
     const [availablePoints, setavailablePoints] = useState(user?.points ?? null);
-    {/* const [qrInfo, setQrInfo] = useState([]); */}
+    // const [qrInfo, setQrInfo] = useState([]);
     const [showRegisterPopup, setShowRegisterPopup] = useState(false);
     const [showPurchasePopup, setShowPurchasePopup] = useState(false);
     const [promotionsOptions, setPromotionsOptions] = useState([]);
     const [registeredUser, setRegisteredUser] = useState(null);
-    {/* const [qrInfo, setQrInfo] = useState([]); */ }
+    // const [qrInfo, setQrInfo] = useState([]);
     const [showTransfer, setShowTransfer] = useState(false);
     const [showRedeem, setShowRedeem] = useState(false);
     const [pointsLoading, setPointsLoading] = useState(user?.points == null);
@@ -64,6 +64,7 @@ function Dashboard() {
                 setPointsLoading(false);
             }
 
+            // Promotions for purchase popup
             try {
                 const promos = await getPromotions({ limit: 1000 });
                 setPromotionsOptions(promos.results || []);
