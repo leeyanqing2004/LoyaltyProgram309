@@ -27,7 +27,7 @@
     right: 12px;
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
     color: #444;
     line-height: 1;
@@ -126,4 +126,69 @@
 .submitBtn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+
+.tableLoading {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    font-weight: 600;
+    color: #2A73B7;
+    padding: 6px 0;
+}
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 3px solid #d8e6f5;
+    border-top-color: #2A73B7;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    padding: 1em 1.5em;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    z-index: 3000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease-out;
+}
+
+.toastSuccess {
+    background: rgba(24, 115, 62, 0.9);
+}
+
+.toastError {
+    background: rgba(139, 26, 26, 0.9);
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: auto;
+    right: auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }

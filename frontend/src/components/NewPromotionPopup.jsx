@@ -18,6 +18,14 @@ function NewPromotionPopup({ show = false, onClose, onCreated }) {
     const [endTime, setEndTime] = useState("");
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
+    const [toast, setToast] = useState(null);
+    const [closing, setClosing] = useState(false);
+
+    useEffect(() => {
+        if (!toast) return;
+        const t = setTimeout(() => setToast(null), 3000);
+        return () => clearTimeout(t);
+    }, [toast]);
 
     useEffect(() => {
         if (!show) {
@@ -76,125 +84,143 @@ function NewPromotionPopup({ show = false, onClose, onCreated }) {
                 endTime: new Date(endTime).toISOString(),
             });
             onCreated?.();
-            onClose?.();
+            setToast({ type: "success", message: "Promotion created" });
+            setClosing(true);
+            setTimeout(() => {
+                onClose?.();
+                setClosing(false);
+            }, 3200);
         } catch (err) {
             const msg = err.response?.data?.error || "Failed to create promotion";
             setErrors({ form: msg });
+            setToast({ type: "error", message: msg });
         } finally {
             setSubmitting(false);
         }
     };
 
-    if (!show) return null;
+    const showOverlay = show && !closing;
+    if (!showOverlay && !toast) return null;
 
     return (
-        <div className={styles.overlay} onClick={onClose}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
-                    ×
-                </button>
-                <h2 className={styles.title}>New Promotion</h2>
-                {errors.form && <div className={styles.formError}>{errors.form}</div>}
-                <div className={styles.grid}>
-                    <div className={styles.field}>
-                        <label>Name</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Promotion name"
-                        />
-                        {errors.name && <div className={styles.error}>{errors.name}</div>}
-                    </div>
-                    <div className={styles.field}>
-                        <label>Promotions Type</label>
-                        <select value={type} onChange={(e) => setType(e.target.value)}>
-                            {typeOptions.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.type && <div className={styles.error}>{errors.type}</div>}
-                    </div>
+        <>
+            {showOverlay && (
+                <div className={styles.overlay} onClick={onClose}>
+                    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+                        <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
+                            ×
+                        </button>
+                        <h2 className={styles.title}>New Promotion</h2>
+                        {errors.form && <div className={styles.formError}>{errors.form}</div>}
+                        <div className={styles.grid}>
+                            <div className={styles.field}>
+                                <label>Name</label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Promotion name"
+                                />
+                                {errors.name && <div className={styles.error}>{errors.name}</div>}
+                            </div>
+                            <div className={styles.field}>
+                                <label>Promotions Type</label>
+                                <select value={type} onChange={(e) => setType(e.target.value)}>
+                                    {typeOptions.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.type && <div className={styles.error}>{errors.type}</div>}
+                            </div>
 
-                    <div className={styles.field}>
-                        <label>Description</label>
-                        <input
-                            type="text"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Short description"
-                        />
-                        {errors.description && <div className={styles.error}>{errors.description}</div>}
-                    </div>
-                    <div className={styles.field}>
-                        <label>Minimum Spending</label>
-                        <input
-                            type="number"
-                            value={minSpending}
-                            onChange={(e) => setMinSpending(e.target.value)}
-                            min="0"
-                            step="0.01"
-                            placeholder="Optional"
-                        />
-                        {errors.minSpending && <div className={styles.error}>{errors.minSpending}</div>}
-                    </div>
+                            <div className={styles.field}>
+                                <label>Description</label>
+                                <input
+                                    type="text"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder="Short description"
+                                />
+                                {errors.description && <div className={styles.error}>{errors.description}</div>}
+                            </div>
+                            <div className={styles.field}>
+                                <label>Minimum Spending</label>
+                                <input
+                                    type="number"
+                                    value={minSpending}
+                                    onChange={(e) => setMinSpending(e.target.value)}
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="Optional"
+                                />
+                                {errors.minSpending && <div className={styles.error}>{errors.minSpending}</div>}
+                            </div>
 
-                    <div className={styles.field}>
-                        <label>Start Time</label>
-                        <input
-                            type="datetime-local"
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
-                        />
-                        {errors.startTime && <div className={styles.error}>{errors.startTime}</div>}
-                    </div>
-                    <div className={styles.field}>
-                        <label>Rate</label>
-                        <input
-                            type="number"
-                            value={rate}
-                            onChange={(e) => setRate(e.target.value)}
-                            min="0"
-                            step="0.01"
-                            placeholder="Optional"
-                        />
-                        {errors.rate && <div className={styles.error}>{errors.rate}</div>}
-                    </div>
+                            <div className={styles.field}>
+                                <label>Start Time</label>
+                                <input
+                                    type="datetime-local"
+                                    value={startTime}
+                                    onChange={(e) => setStartTime(e.target.value)}
+                                />
+                                {errors.startTime && <div className={styles.error}>{errors.startTime}</div>}
+                            </div>
+                            <div className={styles.field}>
+                                <label>Rate</label>
+                                <input
+                                    type="number"
+                                    value={rate}
+                                    onChange={(e) => setRate(e.target.value)}
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="Optional"
+                                />
+                                {errors.rate && <div className={styles.error}>{errors.rate}</div>}
+                            </div>
 
-                    <div className={styles.field}>
-                        <label>End Time</label>
-                        <input
-                            type="datetime-local"
-                            value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
-                        />
-                        {errors.endTime && <div className={styles.error}>{errors.endTime}</div>}
-                    </div>
-                    <div className={styles.field}>
-                        <label>Points</label>
-                        <input
-                            type="number"
-                            value={points}
-                            onChange={(e) => setPoints(e.target.value)}
-                            min="0"
-                            step="1"
-                            placeholder="Optional"
-                        />
-                        {errors.points && <div className={styles.error}>{errors.points}</div>}
+                            <div className={styles.field}>
+                                <label>End Time</label>
+                                <input
+                                    type="datetime-local"
+                                    value={endTime}
+                                    onChange={(e) => setEndTime(e.target.value)}
+                                />
+                                {errors.endTime && <div className={styles.error}>{errors.endTime}</div>}
+                            </div>
+                            <div className={styles.field}>
+                                <label>Points</label>
+                                <input
+                                    type="number"
+                                    value={points}
+                                    onChange={(e) => setPoints(e.target.value)}
+                                    min="0"
+                                    step="1"
+                                    placeholder="Optional"
+                                />
+                                {errors.points && <div className={styles.error}>{errors.points}</div>}
+                            </div>
+                        </div>
+
+                        <button
+                            className={styles.submitBtn}
+                            onClick={handleSubmit}
+                            disabled={submitting}
+                        >
+                            {submitting ? "Creating..." : "Create New Promotion"}
+                        </button>
                     </div>
                 </div>
-
-                <button
-                    className={styles.submitBtn}
-                    onClick={handleSubmit}
-                    disabled={submitting}
+            )}
+            {toast && (
+                <div
+                    className={`${styles.toast} ${toast.type === "success" ? styles.toastSuccess : styles.toastError}`}
                 >
-                    {submitting ? "Creating..." : "Create New Promotion"}
-                </button>
-            </div>
-        </div>
+                    {toast.message}
+                </div>
+            )}
+        </>
     );
 }
 

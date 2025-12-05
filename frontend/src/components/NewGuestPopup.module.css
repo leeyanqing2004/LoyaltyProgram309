@@ -49,6 +49,7 @@
     border: none;
     border-radius: 50%;
     transition: background 0.15s ease;
+    font-size: 16px;
 }
 
 .newGuestPopupCloseButton:hover {

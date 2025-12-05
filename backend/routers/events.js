@@ -215,37 +215,83 @@ router.all('/', async (req, res) => {
             return res.status(403).json({ error: "Forbidden" });
         }
 
-        const newEvent = await prisma.event.create({ 
-            data: {
-                name,
-                description,
-                location,
-                startTime: new Date(startTime),
-                endTime: new Date(endTime),
-                capacity: capacity ?? null,
-                pointsRemain: points,
-                pointsAwarded: 0,
-                published: false,
-                organizers: { create: [] },
-                guests: { create: [] }
-            },
+        try {
+            const newEvent = await prisma.event.create({ 
+                data: {
+                    name,
+                    description,
+                    location,
+                    startTime: new Date(startTime),
+                    endTime: new Date(endTime),
+                    capacity: capacity ?? null,
+                    pointsRemain: points,
+                    pointsAwarded: 0,
+                    published: false,
+                    organizers: { create: [] },
+                    guests: { create: [] }
+                },
 
-            select: {
-                id: true,
-                name: true,
-                description: true,
-                location: true,
-                startTime: true,
-                endTime: true,
-                capacity: true,
-                pointsRemain: true,
-                pointsAwarded: true,
-                published: true,
-                organizers: true,
-                guests: true
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    location: true,
+                    startTime: true,
+                    endTime: true,
+                    capacity: true,
+                    pointsRemain: true,
+                    pointsAwarded: true,
+                    published: true,
+                    organizers: true,
+                    guests: true
+                }
+            });
+            return res.status(201).json(newEvent);
+        } catch (err) {
+            // Handle rare sequence desync causing duplicate id errors
+            if (err.code === 'P2002' && err.meta?.target?.includes('id')) {
+                await prisma.$executeRawUnsafe(
+                    `SELECT setval(pg_get_serial_sequence('"Event"', 'id'), COALESCE((SELECT MAX("id") FROM "Event"), 0) + 1, false)`
+                );
+                try {
+                    const newEvent = await prisma.event.create({ 
+                        data: {
+                            name,
+                            description,
+                            location,
+                            startTime: new Date(startTime),
+                            endTime: new Date(endTime),
+                            capacity: capacity ?? null,
+                            pointsRemain: points,
+                            pointsAwarded: 0,
+                            published: false,
+                            organizers: { create: [] },
+                            guests: { create: [] }
+                        },
+                        select: {
+                            id: true,
+                            name: true,
+                            description: true,
+                            location: true,
+                            startTime: true,
+                            endTime: true,
+                            capacity: true,
+                            pointsRemain: true,
+                            pointsAwarded: true,
+                            published: true,
+                            organizers: true,
+                            guests: true
+                        }
+                    });
+                    return res.status(201).json(newEvent);
+                } catch (innerErr) {
+                    console.error("Failed to auto-repair event id sequence", innerErr);
+                    return res.status(500).json({ error: "Internal Server Error" });
+                }
             }
-        });
-        return res.status(201).json(newEvent);
+            console.error("Failed to create event", err);
+            return res.status(500).json({ error: "Internal Server Error" });
+        }
     } else {
         return res.status(405).json({ error: "Method Not Allowed" });
     }

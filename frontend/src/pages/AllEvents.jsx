@@ -22,7 +22,6 @@ function AllEvents() {
                     show={showNewEvent}
                     onClose={() => setShowNewEvent(false)}
                     onCreated={() => {
-                        setShowNewEvent(false);
                         setRefreshKey((k) => k + 1);
                     }}
                 />

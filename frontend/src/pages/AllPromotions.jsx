@@ -79,7 +79,6 @@ function AllPromotions() {
                     show={showNewPromo}
                     onClose={() => setShowNewPromo(false)}
                     onCreated={() => {
-                        setShowNewPromo(false);
                         setPage(0);
                         setRefreshKey((k) => k + 1);
                     }}
