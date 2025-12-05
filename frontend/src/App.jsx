@@ -17,6 +17,7 @@ import AllPromotions from './pages/AllPromotions';
 import AllUsers from './pages/AllUsers';
 import ManageEvent from './pages/ManageEvent';
 import ProfileShell from "./components/Profile/ProfileShell.jsx";
+import MyEvents from "./pages/MyEvents.jsx";
 
 function RootRedirect() {
   const token = localStorage.getItem("token");
@@ -38,6 +39,7 @@ function App() {
           <Route path="/home" element={<ProfileShell><Dashboard /></ProfileShell>} />
           <Route path="/past-transactions" element={<ProfileShell><PastTransactions /></ProfileShell>} />
           <Route path="/redeem-points" element={<ProfileShell><RedeemPoints /></ProfileShell>} />
+          <Route path="/my-events" element={<ProfileShell><MyEvents /></ProfileShell>} />
           <Route path="/available-promotions" element={<ProfileShell><AvailablePromotions /></ProfileShell>} />
           <Route path="/manage-event/:eventId" element={<ProfileShell><ManageEvent /></ProfileShell>} />
           <Route path="/published-events" element={<ProfileShell><PublishedEvents /></ProfileShell>} />

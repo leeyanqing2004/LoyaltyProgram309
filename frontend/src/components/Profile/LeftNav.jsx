@@ -58,10 +58,16 @@ function LeftMiddle({ endpoint }) {
         <PageButton text="Redeem Points" active={isMyRedemptionsActive} path="/redeem-points"/>
     </div>;
 
+    const isMyEventsActive = matchPath({ path: "/my-events" }, endpoint);
+    const myEventsTab = <div className="leftNavMyEventsTab">
+        <PageButton text="My Events" active={isMyEventsActive} path="/my-events"/>
+    </div>;
+
     return <div className={styles.leftNavLeftMiddle}>
         {homeTab}
         {pastTransactionsTab}
         {myRedemptionsTab}
+        {myEventsTab}
     </div>;
 }
 

@@ -16,21 +16,7 @@ const formatDateTime = (value) => {
     return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 };
   
-export default function EventsTable({ eventsTableTitle, managerViewBool }) {
-    // this is make a fake table with 50 rows, just to see
-    // const rows = Array.from({ length: 50 }, (_, i) => ({
-    //     id: i + 1,
-    //     name: "[Event Name]",
-    //     location: "[Event Location]",
-    //     startTime: "[Start Time]",
-    //     endTime: "[End Time]",
-    //     capacity: "[e.g. 200]",
-    //     numGuests: "[e.g. 7]",
-    //     pointsRemain: "[e.g. 500]",
-    //     pointsAwarded: "[e.g. 10]",
-    //     published: "[e.g. false]"
-    // }));
-  
+export default function EventsTable({ eventsTableTitle, managerViewBool, showRegisteredOnly = false }) {
     const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -120,11 +106,17 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
     }, [toast]);
 
     useEffect(() => {
+        if (showRegisteredOnly) {
+            setPage(0);
+        }
+    }, [showRegisteredOnly]);
+
+    useEffect(() => {
         const fetchEvents = async () => {
             try {
                 const params = {
-                    page: page + 1,
-                    limit: rowsPerPage,
+                    page: showRegisteredOnly ? 1 : page + 1,
+                    limit: showRegisteredOnly ? 1000 : rowsPerPage
                 }
 
                 if (filter) {
@@ -151,7 +143,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
             }
         };
         fetchEvents();
-    }, [page, rowsPerPage, filter, managerViewBool, updateOrganizerStatus, updateGuestStatus]);
+    }, [page, rowsPerPage, filter, managerViewBool, showRegisteredOnly, updateOrganizerStatus, updateGuestStatus]);
     const handleChangePage = (_, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (e) => {
         setRowsPerPage(parseInt(e.target.value, 10));
@@ -222,7 +214,8 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
         }
     };
 
-    const processedRows = rows
+    const filteredRows = (showRegisteredOnly && guestStatusChecked ? rows.filter(row => Boolean(rsvps[row.id])) : rows);
+    const processedRows = filteredRows
     // SORT
     .sort((a, b) => {
         if (!sortBy) {
@@ -378,7 +371,7 @@ export default function EventsTable({ eventsTableTitle, managerViewBool }) {
         
                 <TablePagination
                 component="div"
-                count={totalCount}
+                count={showRegisteredOnly ? processedRows.length : totalCount}
                 page={page}
                 rowsPerPage={rowsPerPage}
                 onPageChange={handleChangePage}
