@@ -396,7 +396,14 @@ export default function EventsTable({ eventsTableTitle, managerViewBool, showReg
                                                             </button>
                                                         );
                                                     }
-                                                    return <button className={styles.manageEventBtn}>More Details</button>;
+                                                    return (
+                                                        <button
+                                                            className={styles.manageEventBtn}
+                                                            onClick={() => handleMoreDetails(row)}
+                                                        >
+                                                            More Details
+                                                        </button>
+                                                    );
                                                 })()}
                                             </TableCell>
                                             <TableCell>

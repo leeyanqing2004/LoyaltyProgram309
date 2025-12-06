@@ -34,7 +34,7 @@ function LeftMiddle({ endpoint }) {
     if (!user) {
         return null;
     }
-    const isMyRedemptionsActive = matchPath({ path: "/redeem-points" }, endpoint);
+    const isMyRedemptionsActive = matchPath({ path: "/my-redemptions" }, endpoint);
     const myRedemptionsTab = <div className="leftNavMyRedemptionsTab">
         <PageButton text="My Redemptions" active={isMyRedemptionsActive} path="/my-redemptions"/>
     </div>;
